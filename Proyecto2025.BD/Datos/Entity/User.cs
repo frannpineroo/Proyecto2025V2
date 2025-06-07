@@ -6,7 +6,8 @@ namespace Proyecto2025.BD.Datos.Entity
     public class User : EntityBase
     {
         [Key]
-        public long Id { get; set; }
+        [Required(ErrorMessage = "El ID de usuario es obligatorio")]
+        public required long Id { get; set; }
 
         [Required(ErrorMessage = "Este campo es requerido")]
         public required string FirstName { get; set; }

@@ -1,15 +1,21 @@
-﻿namespace Proyecto2025.BD.Datos.Entity
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Proyecto2025.BD.Datos.Entity
 {
     public class Chat
     {
-        public long Id { get; set; }
-        public string? Name { get; set; }
+        [Required(ErrorMessage = "El ID de pais es obligatorio")]
+        public required long Id { get; set; }
+
+        [Required(ErrorMessage = "El nombre del chat es obligatorio")]
+        public required string? Name { get; set; }
         public bool IsGroup { get; set; } = false;
         public bool IsModerated { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        public long? OrganizationId { get; set; }
+        [Required(ErrorMessage = "La organizacion es obligatoria")]
+        public required long? OrganizationId { get; set; }
         public Organization? Organization { get; set; }
 
         public ICollection<ChatMember> Members { get; set; } = new List<ChatMember>();

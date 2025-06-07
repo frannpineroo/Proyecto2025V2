@@ -1,9 +1,14 @@
-﻿namespace Proyecto2025.BD.Datos.Entity
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Proyecto2025.BD.Datos.Entity
 {
     public class ChatStatistic
     {
-        public long Id { get; set; }
-        public long OrganizationId { get; set; }
+        [Required(ErrorMessage = "El ID de la estadistica es obligatorio")]
+        public required long Id { get; set; }
+
+        [Required(ErrorMessage = "La organizacion es obligatoria")]
+        public required long OrganizationId { get; set; }
         public Organization Organization { get; set; } = null!;
 
         public string DateRange { get; set; } = null!;

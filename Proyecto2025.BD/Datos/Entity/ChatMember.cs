@@ -1,13 +1,18 @@
-﻿namespace Proyecto2025.BD.Datos.Entity
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Proyecto2025.BD.Datos.Entity
 {
     public class ChatMember
     {
-        public long Id { get; set; }
+        [Required(ErrorMessage = "El ID de miembro es obligatorio")]
+        public required long Id { get; set; }
 
-        public long ChatId { get; set; }
+        [Required(ErrorMessage = "El ID de chat es obligatorio")]
+        public required long ChatId { get; set; }
         public Chat Chat { get; set; } = null!;
 
-        public long UserId { get; set; }
+        [Required(ErrorMessage = "El ID de usuario es obligatorio")]
+        public required long UserId { get; set; }
         public User User { get; set; } = null!;
 
         public bool IsModerator { get; set; } = false;
