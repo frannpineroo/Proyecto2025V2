@@ -7,19 +7,19 @@ namespace Proyecto2025.Server.Controllers
 {
     [ApiController]
     [Route("api/Usuario")]
-    public class UsuarioController : ControllerBase
+    public class UserController : ControllerBase
     {
         private readonly AppDbContext context;
 
-        public UsuarioController(AppDbContext context)
+        public UserController(AppDbContext context)
         {
             this.context = context;
         }
 
-        [HttpGet("GetAll")] //api/Usuario/GetAll
-        public async Task<ActionResult<List<User>>> GetUser();
+        [HttpGet]
+        public async Task<ActionResult<List<User>>> GetUser()
         {
-            
+            var users = await context.Users.ToListAsync();
         }
     }
 }
