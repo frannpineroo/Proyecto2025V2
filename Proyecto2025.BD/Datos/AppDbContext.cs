@@ -7,8 +7,6 @@ namespace Proyecto2025.BD.Datos
     {
         public DbSet<Chat> Chats { get; set; }
         public DbSet<ChatMember> ChatMembers { get; set; }
-        public DbSet<ChatStatistic> ChatStatistics { get; set; }
-        public DbSet<ExternalIntegration> ExternalIntegrations { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Organization> Organizations { get; set; }
