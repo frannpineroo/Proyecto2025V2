@@ -32,6 +32,17 @@ namespace Proyecto2025.Server.Controllers
             return Ok(users);
         }
 
+        [HttpGet("{id:long}")]
+        public async Task<ActionResult<User>> GetById(long id)
+        {
+            var user = await context.Users.FirstOrDefaultAsync(x => x.Id == id);
+            if (user is null)
+            {
+                return NotFound("El usuario no existe.");
+            }
+            return Ok(user);
+        }
+
         [HttpPost]
         public async Task<ActionResult<long>> Post(User DTO)
         {
