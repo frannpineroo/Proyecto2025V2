@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Proyecto2025.BD.Datos;
 using Proyecto2025.BD.Datos.Entity;
+using Proyecto2025.Repositorio.Repositorios;
 
 namespace Proyecto2025.Server.Controllers
 {
@@ -10,16 +11,18 @@ namespace Proyecto2025.Server.Controllers
     public class UserController : ControllerBase
     {
         private readonly AppDbContext context;
+        private readonly IRepositorio<User> repositorio;
 
-        public UserController(AppDbContext context)
+        public UserController(AppDbContext context, IRepositorio<User> repositorio)
         {
             this.context = context;
+            this.repositorio = repositorio;
         }
 
         [HttpGet]
         public async Task<ActionResult<List<User>>> GetUser()
         {
-            var users = await context.Users.ToListAsync();
+            var users = await repositorio.Select();
             if (users == null)
             {
                 return NotFound("No se encontraron los usuarios cargados.");
@@ -35,7 +38,8 @@ namespace Proyecto2025.Server.Controllers
         [HttpGet("{id:long}")]
         public async Task<ActionResult<User>> GetById(long id)
         {
-            var user = await context.Users.FirstOrDefaultAsync(x => x.Id == id);
+            var user = await repositorio.SelectById(id);
+            //var user = await context.Users.FirstOrDefaultAsync(x => x.Id == id);
             if (user is null)
             {
                 return NotFound("El usuario no existe.");
@@ -48,7 +52,8 @@ namespace Proyecto2025.Server.Controllers
         {
             try
             {
-                await context.Users.AddAsync(DTO);
+                await repositorio.Insert(DTO);
+                //await context.Users.AddAsync(DTO);
                 await context.SaveChangesAsync();
                 return Ok(DTO.Id);
             }
@@ -65,12 +70,19 @@ namespace Proyecto2025.Server.Controllers
             {
                 return BadRequest("Datos invalidos.");
             }
-            var existe = await context.Users.AnyAsync(x => x.Id == id);
-            if (!existe)
+            // Verificar si el usuario existe
+            var existe = await repositorio.SelectById(id);
+            if (existe is null)
             {
                 return NotFound("El usuario no existe.");
             }
-            context.Entry(DTO).State = EntityState.Modified;
+            // Actualizar el usuario
+            await repositorio.Update(id, DTO);
+            if (DTO is null)
+            {
+                return BadRequest("Datos invalidos.");
+            }
+            //context.Entry(DTO).State = EntityState.Modified;
             try
             {
                 await context.SaveChangesAsync();

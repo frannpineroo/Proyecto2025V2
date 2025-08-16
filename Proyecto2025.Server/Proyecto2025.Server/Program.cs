@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Proyecto2025.BD.Datos;
+using Proyecto2025.BD.Datos.Entity;
+using Proyecto2025.Repositorio.Repositorios;
 using Proyecto2025.Server.Components;
+using Proyecto2025.Server.Controllers;
 
 // Configuracion del constructor de la aplicación.
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +18,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-
+builder.Services.AddScoped<IRepositorio<User>, Repositorio<User>>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
