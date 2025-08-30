@@ -15,7 +15,7 @@ namespace Proyecto2025.BD.Datos.Entity
         public User Sender { get; set; } = null!;
 
         [Required(ErrorMessage = "El contenido del mensaje es obligatorio")]
-        [MaxLength(1000, ErrorMessage = "La cantidad maxima de caracteres es {1000}")]
+        [MaxLength(2000, ErrorMessage = "La cantidad maxima de caracteres es {2000}")]
         public string Content { get; set; } = null!;
         public MessageType MessageType { get; set; } = MessageType.text;
         public byte[]? MediaFile { get; set; }
