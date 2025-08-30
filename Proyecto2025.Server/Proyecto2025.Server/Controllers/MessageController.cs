@@ -2,6 +2,7 @@
 using Proyecto2025.BD.Datos;
 using Proyecto2025.BD.Datos.Entity;
 using Microsoft.EntityFrameworkCore;
+using Proyecto2025.Repositorio.Repositorios;
 
 
 namespace Proyecto2025.Server.Controllers
@@ -12,6 +13,8 @@ namespace Proyecto2025.Server.Controllers
     public class MessageController : ControllerBase
     {
         private readonly AppDbContext context;
+        private readonly IMensajeRepositorio mensajeRepository;
+        //private readonly IMapper mapper;
         public MessageController(AppDbContext context)
         {
             this.context = context;

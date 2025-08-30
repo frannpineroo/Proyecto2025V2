@@ -5,12 +5,19 @@ using Proyecto2025.BD.Datos.Entity;
 using Proyecto2025.Repositorio.Repositorios;
 using Proyecto2025.Server.Components;
 using Proyecto2025.Server.Controllers;
+using System.Text.Json.Serialization;
 
 // Configuracion del constructor de la aplicación.
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
+// Agrego AutoMapper
+//builder.Services.AddAutoMapper(typeof(MappingProfile));
+//builder.Services.ConfigureHttpJsonOptions(options =>
+//{
+//    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+//});
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("El string de conexion no existe.");
