@@ -14,11 +14,7 @@ namespace Proyecto2025.BD.Datos.Entity
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         [Required(ErrorMessage = "La organizacion es obligatoria")]
-<<<<<<< HEAD
         public required long? OrganizationId { get; set; }
-        public Organization? Organization { get; set; } = null;
-=======
-        public required long OrganizationId { get; set; }
         public Organization? Organization { get; set; }
 >>>>>>> 5262e3b96c3456166c5a805a29ffef9256034d22
 
