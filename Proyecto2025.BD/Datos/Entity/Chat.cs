@@ -16,9 +16,9 @@ namespace Proyecto2025.BD.Datos.Entity
 
         [Required(ErrorMessage = "La organizacion es obligatoria")]
         public required long? OrganizationId { get; set; }
-        public Organization? Organization { get; set; }
+        public Organization? Organization { get; set; } = null;
 
-        public ICollection<ChatMember> Members { get; set; } = new List<ChatMember>();
-        public ICollection<Message> Messages { get; set; } = new List<Message>();
+        //public ICollection<ChatMember> Members { get; set; } = new List<ChatMember>();
+        //public ICollection<Message> Messages { get; set; } = new List<Message>();
     }
 }
