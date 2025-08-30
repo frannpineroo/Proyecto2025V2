@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Proyecto2025.BD.Datos;
 using Proyecto2025.BD.Datos.Entity;
 using Proyecto2025.Repositorio.Repositorios;
@@ -18,7 +19,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-builder.Services.AddScoped<IRepositorio<User>, Repositorio<User>>();
+builder.Services.AddScoped<IRepositorio<User>, Repositorio<User>>(); 
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -27,6 +28,7 @@ builder.Services.AddRazorComponents()
 
 // Constructor de la aplicacion 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

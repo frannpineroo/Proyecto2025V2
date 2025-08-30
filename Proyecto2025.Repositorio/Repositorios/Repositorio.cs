@@ -8,10 +8,11 @@ using System.Threading.Tasks;
 
 namespace Proyecto2025.Repositorio.Repositorios
 {
-    public class Repositorio<E> : IRepositorio<E> where E : class
+    public class Repositorio<E> : IRepositorio<E> where E : class, IEntityBase
+    //public class Repositorio<E> where E : class, IRepositorio<E>
     {
         private readonly AppDbContext context;
-
+        
         public Repositorio(AppDbContext context)
         {
             this.context = context;

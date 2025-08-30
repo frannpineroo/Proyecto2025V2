@@ -6,20 +6,22 @@ namespace Proyecto2025.BD.Datos.Entity
     [Index(nameof(Email),Name = "Email_UQ", IsUnique = true)]
     public class User : EntityBase
     {
-        [Key]
-        [Required(ErrorMessage = "El ID de usuario es obligatorio")]
-        public required long Id { get; set; }
 
         [Required(ErrorMessage = "Este campo es requerido")]
+        [MaxLength(45, ErrorMessage = "La cantidad maxima de caracteres es {45}")]
         public required string FirstName { get; set; }
 
         [Required(ErrorMessage = "Este campo es requerido")]
+        [MaxLength(45, ErrorMessage = "La cantidad maxima de caracteres es {45}")]
         public required string LastName { get; set; }
+        
 
         [Required(ErrorMessage = "Este campo es requerido")]
+        [MaxLength(80, ErrorMessage = "La cantidad maxima de caracteres es {80}")]
         public required string Email { get; set; }
 
         [Required(ErrorMessage = "Este campo es requerido")]
+        [MaxLength(45, ErrorMessage = "La cantidad maxima de caracteres es {45}")]
         public required string Password { get; set; }
 
         public bool IsOnline { get; set; } = false;
@@ -28,12 +30,17 @@ namespace Proyecto2025.BD.Datos.Entity
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public long? OrganizationId { get; set; }
+        [Required(ErrorMessage = "El id de organizacion es obligatorio")]
+        public required long OrganizationId { get; set; }
         public Organization? Organization { get; set; }
 
-        public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
-        public ICollection<ChatMember> ChatMemberships { get; set; } = new List<ChatMember>();
-        public ICollection<Message> SentMessages { get; set; } = new List<Message>();
-        public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+        [Required(ErrorMessage = "El id de rol es obligatorio")]
+        public required long RoleId { get; set; }
+        public Role? Role { get; set; }
+
+        //public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+        //public ICollection<ChatMember> ChatMemberships { get; set; } = new List<ChatMember>();
+        //public ICollection<Message> SentMessages { get; set; } = new List<Message>();
+        //public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     }
 }
