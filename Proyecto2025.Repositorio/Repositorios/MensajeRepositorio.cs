@@ -22,7 +22,6 @@ namespace Proyecto2025.Repositorio.Repositorios
             return await context.Messages
                 .Include(m => m.Chat)
                 .Include(m => m.Sender)
-                    .ThenInclude(s => s.Organization)
                 .Include(m => m.Sender)
                     .ThenInclude(s => s.Role)
                 .FirstAsync(m => m.Id == mensaje.Id);
@@ -33,7 +32,6 @@ namespace Proyecto2025.Repositorio.Repositorios
             return await context.Messages
                 .Include(m => m.Chat)
                 .Include(m => m.Sender)
-                    .ThenInclude(s => s.Organization)
                 .Include(m => m.Sender)
                     .ThenInclude(s => s.Role)
                 .FirstOrDefaultAsync(m => m.Id == id);

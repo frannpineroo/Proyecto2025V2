@@ -30,10 +30,6 @@ namespace Proyecto2025.BD.Datos.Entity
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        [Required(ErrorMessage = "El id de organizacion es obligatorio")]
-        public required long OrganizationId { get; set; }
-        public Organization? Organization { get; set; }
-
         [Required(ErrorMessage = "El id de rol es obligatorio")]
         public required long RoleId { get; set; }
         public Role? Role { get; set; }

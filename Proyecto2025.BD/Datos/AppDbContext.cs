@@ -9,7 +9,6 @@ namespace Proyecto2025.BD.Datos
         public DbSet<ChatMember> ChatMembers { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Notification> Notifications { get; set; }
-        public DbSet<Organization> Organizations { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<User> Users { get; set; }
         

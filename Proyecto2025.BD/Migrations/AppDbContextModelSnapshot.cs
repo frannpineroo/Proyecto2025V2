@@ -17,7 +17,7 @@ namespace Proyecto2025.BD.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.6")
+                .HasAnnotation("ProductVersion", "9.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -44,15 +44,10 @@ namespace Proyecto2025.BD.Migrations
                         .HasMaxLength(25)
                         .HasColumnType("nvarchar(25)");
 
-                    b.Property<long>("OrganizationId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OrganizationId");
 
                     b.ToTable("Chats");
                 });
@@ -102,8 +97,8 @@ namespace Proyecto2025.BD.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
@@ -160,24 +155,6 @@ namespace Proyecto2025.BD.Migrations
                     b.ToTable("Notifications");
                 });
 
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Organization", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(45)
-                        .HasColumnType("nvarchar(45)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Organizations");
-                });
-
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Role", b =>
                 {
                     b.Property<long>("Id")
@@ -228,9 +205,6 @@ namespace Proyecto2025.BD.Migrations
                         .HasMaxLength(45)
                         .HasColumnType("nvarchar(45)");
 
-                    b.Property<long>("OrganizationId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasMaxLength(45)
@@ -241,25 +215,12 @@ namespace Proyecto2025.BD.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrganizationId");
-
                     b.HasIndex("RoleId");
 
                     b.HasIndex(new[] { "Email" }, "Email_UQ")
                         .IsUnique();
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Chat", b =>
-                {
-                    b.HasOne("Proyecto2025.BD.Datos.Entity.Organization", "Organization")
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Organization");
                 });
 
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.ChatMember", b =>
@@ -313,19 +274,11 @@ namespace Proyecto2025.BD.Migrations
 
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.User", b =>
                 {
-                    b.HasOne("Proyecto2025.BD.Datos.Entity.Organization", "Organization")
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Proyecto2025.BD.Datos.Entity.Role", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Organization");
 
                     b.Navigation("Role");
                 });

@@ -6,22 +6,26 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Proyecto2025.BD.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial01 : Migration
+    public partial class sacandoOrganizacion : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Organizations",
+                name: "Chats",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(45)", maxLength: 45, nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: false),
+                    IsGroup = table.Column<bool>(type: "bit", nullable: false),
+                    IsModerated = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Organizations", x => x.Id);
+                    table.PrimaryKey("PK_Chats", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -38,30 +42,6 @@ namespace Proyecto2025.BD.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Chats",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: false),
-                    IsGroup = table.Column<bool>(type: "bit", nullable: false),
-                    IsModerated = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    OrganizationId = table.Column<long>(type: "bigint", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Chats", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Chats_Organizations_OrganizationId",
-                        column: x => x.OrganizationId,
-                        principalTable: "Organizations",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -74,24 +54,17 @@ namespace Proyecto2025.BD.Migrations
                     IsOnline = table.Column<bool>(type: "bit", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    OrganizationId = table.Column<long>(type: "bigint", nullable: false),
                     RoleId = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Users_Organizations_OrganizationId",
-                        column: x => x.OrganizationId,
-                        principalTable: "Organizations",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_Users_Roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "Roles",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -114,7 +87,7 @@ namespace Proyecto2025.BD.Migrations
                         column: x => x.ChatId,
                         principalTable: "Chats",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ChatMembers_Users_UserId",
                         column: x => x.UserId,
@@ -131,7 +104,7 @@ namespace Proyecto2025.BD.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ChatId = table.Column<long>(type: "bigint", nullable: false),
                     SenderId = table.Column<long>(type: "bigint", nullable: false),
-                    Content = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
                     MessageType = table.Column<int>(type: "int", nullable: false),
                     MediaFile = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
                     SentAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -152,7 +125,7 @@ namespace Proyecto2025.BD.Migrations
                         column: x => x.SenderId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -188,11 +161,6 @@ namespace Proyecto2025.BD.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Chats_OrganizationId",
-                table: "Chats",
-                column: "OrganizationId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Messages_ChatId",
                 table: "Messages",
                 column: "ChatId");
@@ -212,11 +180,6 @@ namespace Proyecto2025.BD.Migrations
                 table: "Users",
                 column: "Email",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_OrganizationId",
-                table: "Users",
-                column: "OrganizationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_RoleId",
@@ -241,9 +204,6 @@ namespace Proyecto2025.BD.Migrations
 
             migrationBuilder.DropTable(
                 name: "Users");
-
-            migrationBuilder.DropTable(
-                name: "Organizations");
 
             migrationBuilder.DropTable(
                 name: "Roles");
