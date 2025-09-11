@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Proyecto2025.BD.Datos;
 using Proyecto2025.BD.Datos.Entity;
+using Proyecto2025.Repositorio.Repositorios;
+using Proyecto2025.Shared.DTO;
 
 namespace Proyecto2025.Server.Controllers
 {
@@ -11,17 +13,17 @@ namespace Proyecto2025.Server.Controllers
     {
 
 
-        private readonly AppDbContext context;
+        private readonly IRepositorio<Role> repositorio;
 
-        public RoleController(AppDbContext context)
+        public RoleController(IRepositorio<Role> repositorio)
         {
-            this.context = context;
+            this.repositorio = repositorio;
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Role>>> GetRoles()
+        public async Task<ActionResult<List<RolDTO>>> GetRoles()
         {
-            var Roles = await context.Roles.ToListAsync();
+            var Roles = await repositorio.Select();
             if (Roles == null || Roles.Count == 0)
             {
                 return NotFound("No se encuentran roles.");
@@ -30,58 +32,51 @@ namespace Proyecto2025.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<long>> Post(Role DTORole)
+        public async Task<ActionResult<long>> Post(RolDTO Rol)
         {
             try
             {
-                await context.Roles.AddAsync(DTORole);
-                await context.SaveChangesAsync();
-                return Ok(DTORole.Id);
+                Role entidad = new Role
+                {
+                    Id = Rol.Id,
+                    Name = Rol.Name
+                };
+                var id = await repositorio.Insert(entidad);
+                return Ok("El rol ha sido creado exitosamente");
             }
             catch (Exception e)
             {
                 return BadRequest($"Error al crear el rol: {e.Message}");
             }
+           
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(long id, Role DTORole)
+        public async Task<ActionResult> Put(long id, Role Rol)
         {
-            if (id != DTORole.Id)
-            {
-                return BadRequest("Datos inválidos.");
-            }
-            var existeRole = await context.Roles.AnyAsync(x => x.Id == id);
-            if (!existeRole)
-            {
-                return NotFound("El rol no existe.");
-            }
+            
             try
             {
-                context.Roles.Update(DTORole);
-                await context.SaveChangesAsync();
+                await repositorio.Update(id, Rol);
+                //if (id != Rol.Id)
+                //{
+                //   return BadRequest("Datos inválidos.");
+                //}
+                //var existe = await repositorio.Update(id, Rol);
+                //if (!existe)
+                //{
+                //    return NotFound("El rol no existe.");
+                //}
                 return Ok("Roles actualizados.");
             }
             catch (Exception e)
             {
                 return BadRequest($"Error al actualizar el rol: {e.Message}");
             }
+
         }
 
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(long id)
-        {
-            var existeRole = await context.Roles.AnyAsync(x => x.Id == id);
-            if (!existeRole)
-            {
-                return NotFound("El rol no existe.");
-            }
-
-            var role = await context.Roles.FirstOrDefaultAsync(x => x.Id == id);
-            context.Roles.Remove(role);
-            await context.SaveChangesAsync();
-            return Ok("Rol eliminado.");
-        }
+       
 
     }
 }

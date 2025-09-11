@@ -10,5 +10,6 @@ namespace Proyecto2025.Repositorio.Repositorios
         Task<E?> SelectById(long id);
         //Task Update(E entidad);
         Task<bool> Update(long id, E entidad);
+        Task<bool> Existe(long id);
     }
 }

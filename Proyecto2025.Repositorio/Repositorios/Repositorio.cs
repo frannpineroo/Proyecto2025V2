@@ -24,6 +24,12 @@ namespace Proyecto2025.Repositorio.Repositorios
             return await context.Set<E>().ToListAsync();
         }
 
+        public async Task<bool> Existe(long id)
+        {
+            bool existe = await context.Set<E>()
+                                       .AnyAsync(x => x.Id == id);
+            return existe;
+        }
         public async Task<E?> SelectById(long id)
         {
             return await context.Set<E>().FindAsync(id);
@@ -35,7 +41,7 @@ namespace Proyecto2025.Repositorio.Repositorios
             {
                 await context.Set<E>().AddAsync(entidad);
                 await context.SaveChangesAsync();
-                return (long)typeof(E).GetProperty("Id")!.GetValue(entidad)!;
+                return (entidad.Id);
             }
             catch (Exception e)
             {
@@ -43,15 +49,16 @@ namespace Proyecto2025.Repositorio.Repositorios
                 throw new Exception("Error al insertar la entidad.", e);
             }
         }
-
+  
         public async Task<bool> Update(long id,E entidad)
         {
-            if (id != (long)typeof(E).GetProperty("Id")!.GetValue(entidad)!)
+            if (id != entidad.Id)
             {
                 throw new ArgumentException("El ID de la entidad no coincide con el ID proporcionado.");
             }
-            var existe = await context.Set<E>().FindAsync(id);
-            if (existe == null)
+            var existe = await Existe(id);
+            //var existe = await context.Set<E>().FindAsync(id);
+            if (!existe)
             {
                 throw new KeyNotFoundException("La entidad no existe.");
             }
@@ -68,6 +75,7 @@ namespace Proyecto2025.Repositorio.Repositorios
             }
             
         }
+
 
 
     }

@@ -27,6 +27,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 builder.Services.AddScoped<IRepositorio<User>, Repositorio<User>>(); 
+builder.Services.AddScoped<IRepositorio<Role>,Repositorio<Role>>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

@@ -2,7 +2,8 @@
     using Microsoft.EntityFrameworkCore;
     using Proyecto2025.BD.Datos;
     using Proyecto2025.BD.Datos.Entity;
-    using System.Collections.Generic;
+using Proyecto2025.Shared.ENUM;
+using System.Collections.Generic;
     using System.Threading.Tasks;
 
 namespace Proyecto2025.Server.Controllers
@@ -129,7 +130,7 @@ namespace Proyecto2025.Server.Controllers
 
         public async Task<ActionResult<List<Chat>>> GetChatsByGroupStatus(bool IsGroup)
         {
-            var chats = await context.Chats.Where(c => c.IsGroup == IsGroup).ToListAsync();
+            var chats = await context.Chats.Where(c => c.ChatType == ChatType.group).ToListAsync();
             if (chats == null || chats.Count == 0)
             {
                 return NotFound("No se encontraron chats con el estado de grupo especificado.");
@@ -142,7 +143,7 @@ namespace Proyecto2025.Server.Controllers
         [HttpGet("por-moderador/{IsModerated}")]
         public async Task<ActionResult<List<Chat>>> GetChatsByModerationStatus(bool IsModerated)
         {
-            var chats = await context.Chats.Where(c => c.IsModerated == IsModerated).ToListAsync();
+            var chats = await context.Chats.Where(c => c.ChatType == ChatType.moderateGroup).ToListAsync();
             if (chats == null || chats.Count == 0)
             {
                 return NotFound("No se encontraron chats con el estado de moderación especificado.");
