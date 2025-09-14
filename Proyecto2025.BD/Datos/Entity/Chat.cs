@@ -2,9 +2,9 @@
 
 namespace Proyecto2025.BD.Datos.Entity
 {
-    public class Chat
+    public class Chat : EntityBase
     {
-        [Required(ErrorMessage = "El ID de pais es obligatorio")]
+        [Required(ErrorMessage = "El ID de chat es obligatorio")]
         public required long Id { get; set; }
 
         [Required(ErrorMessage = "El nombre del chat es obligatorio")]
@@ -16,7 +16,7 @@ namespace Proyecto2025.BD.Datos.Entity
 
         [Required(ErrorMessage = "La organizacion es obligatoria")]
         public required long? OrganizationId { get; set; }
-        public Organization? Organization { get; set; }
+        //public Organization? Organization { get; set; }
 
         public ICollection<ChatMember> Members { get; set; } = new List<ChatMember>();
         public ICollection<Message> Messages { get; set; } = new List<Message>();

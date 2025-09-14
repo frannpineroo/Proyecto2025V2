@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Proyecto2025.BD.Datos;
 using Proyecto2025.BD.Datos.Entity;
+using Proyecto2025.Repositorio.Repositorios;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -13,19 +14,35 @@ namespace Proyecto2025.Server.Controllers
     public class ChatMemberController : ControllerBase
     {
         private readonly AppDbContext context;
-        public ChatMemberController(AppDbContext context)
+        private readonly IChatMemberRepositorio<ChatMember> chatMemberRepositorio;
+
+        public ChatMemberController(AppDbContext context,
+            IChatMemberRepositorio<ChatMember> chatMemberRepositorio)
         {
             this.context = context;
+            this.chatMemberRepositorio = chatMemberRepositorio;
         }
-
         #region
         [HttpGet("por-id/{Id}")]
         public async Task<ActionResult<IEnumerable<ChatMember>>> GetChatMembers(long chatId)
         {
-            var members = await context.ChatMembers
-                .Include(cm => cm.User) // Incluye la entidad User relacionada
-                .Where(cm => cm.ChatId == chatId)
-                .ToListAsync();
+            // Inicialización simplificada y con miembros requeridos
+            ChatMember member = new ChatMember
+            {
+                Id = chatId,
+                ChatId = chatId,
+                UserId = 1, // Asigna un valor válido a UserId
+                IsModerator = false,
+                CanWrite = true,
+                JoinedAt = System.DateTime.UtcNow
+            };
+            //await context.ChatMembers.AddAsync(member);
+            //await context.SaveChangesAsync();
+            //var members = await context.ChatMembers
+            var members = await chatMemberRepositorio.SelectByChatId(chatId);
+                //.Include(cm => cm.User) // Incluye la entidad User relacionada
+                //.Where(cm => cm.ChatId == chatId)
+                //.ToListAsync();
             if (members == null || members.Count == 0)
             {
                 return NotFound("No members found for this chat.");
@@ -36,9 +53,10 @@ namespace Proyecto2025.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<ChatMember>> GetChatMemberById(long id)
         {
-            var member = await context.ChatMembers
-                .Include(cm => cm.User) // Incluye la entidad User relacionada
-                .FirstOrDefaultAsync(cm => cm.Id == id);
+            var member = await context.ChatMembers.FindAsync(id);
+            //var member = await context.ChatMembers
+            //.Include(cm => cm.User) // Incluye la entidad User relacionada
+            //.FirstOrDefaultAsync(cm => cm.Id == id);
             if (member == null)
             {
                 return NotFound("Member not found.");
@@ -49,6 +67,11 @@ namespace Proyecto2025.Server.Controllers
         [HttpPut("por-id/{Id}")]
         public async Task<IActionResult> UpdateChatMember(long id, ChatMember updatedMember)
         {
+            var member = await context.ChatMembers.FindAsync(id);
+            if (member == null)
+            {
+                return NotFound("Miembro no encontrado.");
+            }
             if (id != updatedMember.Id)
             {
                 return BadRequest("el id del miembro no existe.");
@@ -59,6 +82,7 @@ namespace Proyecto2025.Server.Controllers
                 await context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
+            
             {
                 if (!ChatMemberExists(id))
                 {
@@ -74,16 +98,18 @@ namespace Proyecto2025.Server.Controllers
         }
 
         [HttpDelete("por-id/{Id}")]
-        public async Task<IActionResult> DeleteChatMember(long id)
+        public async Task<IActionResult> DeleteChatMember(int id)
         {
-            var member = await context.ChatMembers.FindAsync(id);
-            if (member == null)
+            var member = await chatMemberRepositorio.Delete(id);
+            //var member = await context.ChatMembers.FindAsync(id);
+            if (member == false)
             {
                 return NotFound("Miembro no encontrado.");
             }
-            context.ChatMembers.Remove(member);
-            await context.SaveChangesAsync();
-            return NoContent();
+            return Ok("Miembro eliminado correctamente.");
+            //context.ChatMembers.Remove(member);
+            //await context.SaveChangesAsync();
+            //return NoContent();
         }
 
         private bool ChatMemberExists(long id)

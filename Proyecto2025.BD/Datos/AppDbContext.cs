@@ -9,7 +9,7 @@ namespace Proyecto2025.BD.Datos
         public DbSet<ChatMember> ChatMembers { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Notification> Notifications { get; set; }
-        public DbSet<Organization> Organizations { get; set; }
+        //public DbSet<Organization> Organizations { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
@@ -24,11 +24,11 @@ namespace Proyecto2025.BD.Datos
             // Aquí puedes configurar tus entidades, relaciones, etc.
 
             // Configurar relacion explicita entre Organization y Admin (User)
-            modelBuilder.Entity<Organization>()
-                .HasOne(o => o.Admin)
-                .WithMany() //Sin navegacion inversa
-                .HasForeignKey(o => o.AdminId)
-                .OnDelete(DeleteBehavior.Restrict);
+            //modelBuilder.Entity<Organization>()
+                //.HasOne(o => o.Admin)
+                //.WithMany() //Sin navegacion inversa
+                //.HasForeignKey(o => o.AdminId)
+                //.OnDelete(DeleteBehavior.Restrict);
 
             // Poniendo dos claves foraneas en UserRole
             modelBuilder.Entity<UserRole>()

@@ -2,6 +2,8 @@
     using Microsoft.EntityFrameworkCore;
     using Proyecto2025.BD.Datos;
     using Proyecto2025.BD.Datos.Entity;
+    using Proyecto2025.Repositorio.Repositorios;
+    using Proyecto2025.Shared.DTO;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
@@ -12,17 +14,20 @@ namespace Proyecto2025.Server.Controllers
     public class ChatController : ControllerBase
     {
         private readonly AppDbContext context;
+        private readonly IRepositorio<Chat> repositorio;
 
-        public ChatController(AppDbContext context)
+        public ChatController(AppDbContext context,
+                              IRepositorio<Chat> repositorio)
         {
             this.context = context;
+            this.repositorio = repositorio;
         }
-
         #region
-        [HttpGet("por-id/{id}")]
-        public async Task<ActionResult<List<Chat>>> GetChatsById(long id)
+        [HttpGet("por-chat-lista/{id}")]//listachats
+        public async Task<ActionResult<List<ListaChatDTO>>> GetChatslista(long id)
         {
-            var chats = await context.Chats.ToListAsync();
+            var chats = await repositorio.SelectListaChat();
+            //var chats = await context.Chats.ToListAsync();
             if (chats == null || chats.Count == 0)
             {
                 return NotFound("No se encontraron chats, verifique de nuevo.");
@@ -31,13 +36,22 @@ namespace Proyecto2025.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<long>> Post(Chat DTO)
+        public async Task<ActionResult<long>> Post(ChatDTO DTO)
         {
             try
             {
-                await context.Chats.AddAsync(DTO);
-                await context.SaveChangesAsync();
-                return Ok(DTO.Id);
+                Chat chat = new()
+                {
+                    Id = DTO.Id, // Soluciona CS9035: Id es requerido
+                    Name = DTO.Name,
+                    IsGroup = DTO.IsGroup,
+                    IsModerated = DTO.IsModerated,
+                    CreatedAt = DTO.CreatedAt,
+                    UpdatedAt = DTO.UpdatedAt,
+                    OrganizationId = DTO.OrganizationId
+                };
+                var id = await repositorio.Insert(chat);
+                return Ok(chat.Id);
             }
             catch (Exception e)
             {
@@ -46,33 +60,41 @@ namespace Proyecto2025.Server.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(long id, Chat DTO)
+        public async Task<ActionResult> Put(int id, Chat DTO)
         {
             if (id != DTO.Id)
             {
                 return BadRequest("Datos inválidos, vuelva a verificar los datos");
             }
-            var existe = await context.Chats.AnyAsync(x => x.Id == id);
-            if (!existe)
+            //var existe = await repositorio.existe((int)id);
+            //var existe = await context.Chats.AnyAsync(x => x.Id == id);
+            //if (!existe)
+            //{
+            //    return NotFound("El chat no existe.");
+            //}
+            //try
+            //{
+            //    context.Chats.Update(DTO);
+            //    await context.SaveChangesAsync();
+            //    return Ok();
+            //}
+            //catch (Exception e)
+            var existe = await repositorio.Update(id, DTO);
             {
-                return NotFound("El chat no existe.");
-            }
-            try
-            {
-                context.Chats.Update(DTO);
-                await context.SaveChangesAsync();
-                return Ok();
-            }
-            catch (Exception e)
-            {
-                return BadRequest($"Error al actualizar el chat: {e.Message}");
+                if (!existe)
+                {
+                    return NotFound("El chat no existe.");
+                }
+                return Ok($"Error al actualizar el chat: {id} actualizado con exito");
             }
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(long id)
         {
-            var chat = await context.Chats.FindAsync(id);
+           
+            var chat = await context.Chats.FirstOrDefaultAsync(c => c.Id == id);
+            //var chat = await context.Chats.FindAsync(id);
             if (chat == null)
             {
                 return NotFound("El chat no existe.");

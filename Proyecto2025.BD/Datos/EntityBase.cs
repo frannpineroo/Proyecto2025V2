@@ -7,8 +7,11 @@ using System.Threading.Tasks;
 
 namespace Proyecto2025.BD.Datos
 {
-    public class EntityBase
+    public class EntityBase : IEntityBase
     {
         public EstadoRegistro EstadoRegistro { get; set; }
+        public int Id { get; set; }
+
+        public long ChatId { get; set; }
     }
 }
