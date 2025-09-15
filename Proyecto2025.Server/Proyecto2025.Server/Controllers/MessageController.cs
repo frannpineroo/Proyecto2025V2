@@ -78,7 +78,24 @@ namespace Proyecto2025.Server.Controllers
             return Ok($"Mensaje con id {Id} actualizado correctamente");
         }
 
-        
+        [HttpPut("Hide/{Id:int}")]
+        public async Task<ActionResult> HideMessage(int Id)
+        {
+            var mensaje = await context.Messages.FirstOrDefaultAsync(x => x.Id == Id);
+            if (mensaje == null)
+            {
+                return NotFound($"No existe el Mensaje con id {Id}");
+            }
+
+            mensaje.IsArchived = true;
+            context.Messages.Update(mensaje);
+            await context.SaveChangesAsync();
+
+            return Ok($"Mensaje con id {Id} ocultado correctamente");
+        }
+
+
+
 
     }
 }
