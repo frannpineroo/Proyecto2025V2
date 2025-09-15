@@ -26,7 +26,9 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-builder.Services.AddScoped<IRepositorio<User>, Repositorio<User>>(); 
+// builder.Services.AddScoped<IRepositorio<User>, Repositorio<User>>(); 
+// Program.cs
+builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
