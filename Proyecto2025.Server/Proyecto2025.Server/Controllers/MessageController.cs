@@ -2,6 +2,7 @@
 using Proyecto2025.BD.Datos;
 using Proyecto2025.BD.Datos.Entity;
 using Microsoft.EntityFrameworkCore;
+using Proyecto2025.Repositorio.Repositorios;
 
 
 namespace Proyecto2025.Server.Controllers
@@ -12,6 +13,8 @@ namespace Proyecto2025.Server.Controllers
     public class MessageController : ControllerBase
     {
         private readonly AppDbContext context;
+        private readonly IMensajeRepositorio mensajeRepository;
+        //private readonly IMapper mapper;
         public MessageController(AppDbContext context)
         {
             this.context = context;
@@ -57,6 +60,10 @@ namespace Proyecto2025.Server.Controllers
                 return NotFound($"No Existe el Mensaje con el Id: {Id}.");
             }
             var messaje = await context.Messages.FirstOrDefaultAsync(x => x.Id == Id);
+            if (messaje is null)
+            {
+                return NotFound($"No se encontro el Mensaje con el Id: {Id}.");
+            }
             context.Messages.Remove(messaje);
             await context.SaveChangesAsync();
             return Ok($"Mensaje con el Id {Id} eliminado correctamente");
