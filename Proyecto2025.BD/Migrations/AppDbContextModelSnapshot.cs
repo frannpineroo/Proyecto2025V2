@@ -17,7 +17,7 @@ namespace Proyecto2025.BD.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.6")
+                .HasAnnotation("ProductVersion", "9.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -41,17 +41,13 @@ namespace Proyecto2025.BD.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("OrganizationId")
-                        .HasColumnType("bigint");
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OrganizationId");
 
                     b.ToTable("Chats");
                 });
@@ -101,7 +97,8 @@ namespace Proyecto2025.BD.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
@@ -112,9 +109,8 @@ namespace Proyecto2025.BD.Migrations
                     b.Property<byte[]>("MediaFile")
                         .HasColumnType("varbinary(max)");
 
-                    b.Property<string>("MessageType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("MessageType")
+                        .HasColumnType("int");
 
                     b.Property<long>("SenderId")
                         .HasColumnType("bigint");
@@ -159,28 +155,6 @@ namespace Proyecto2025.BD.Migrations
                     b.ToTable("Notifications");
                 });
 
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Organization", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("AdminId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AdminId");
-
-                    b.ToTable("Organizations");
-                });
-
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Role", b =>
                 {
                     b.Property<long>("Id")
@@ -191,7 +165,8 @@ namespace Proyecto2025.BD.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
 
                     b.HasKey("Id");
 
@@ -211,14 +186,13 @@ namespace Proyecto2025.BD.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -228,18 +202,20 @@ namespace Proyecto2025.BD.Migrations
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long?>("OrganizationId")
-                        .HasColumnType("bigint");
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<long>("RoleId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrganizationId");
+                    b.HasIndex("RoleId");
 
                     b.HasIndex(new[] { "Email" }, "Email_UQ")
                         .IsUnique();
@@ -247,50 +223,16 @@ namespace Proyecto2025.BD.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.UserRole", b =>
-                {
-                    b.Property<long>("IdUser")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("IdRole")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("RoleId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("IdUser", "IdRole");
-
-                    b.HasIndex("RoleId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserRoles");
-                });
-
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Chat", b =>
-                {
-                    b.HasOne("Proyecto2025.BD.Datos.Entity.Organization", "Organization")
-                        .WithMany("Chats")
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Organization");
-                });
-
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.ChatMember", b =>
                 {
                     b.HasOne("Proyecto2025.BD.Datos.Entity.Chat", "Chat")
-                        .WithMany("Members")
+                        .WithMany()
                         .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Proyecto2025.BD.Datos.Entity.User", "User")
-                        .WithMany("ChatMemberships")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -303,13 +245,13 @@ namespace Proyecto2025.BD.Migrations
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Message", b =>
                 {
                     b.HasOne("Proyecto2025.BD.Datos.Entity.Chat", "Chat")
-                        .WithMany("Messages")
+                        .WithMany()
                         .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Proyecto2025.BD.Datos.Entity.User", "Sender")
-                        .WithMany("SentMessages")
+                        .WithMany()
                         .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -322,7 +264,7 @@ namespace Proyecto2025.BD.Migrations
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Notification", b =>
                 {
                     b.HasOne("Proyecto2025.BD.Datos.Entity.User", "User")
-                        .WithMany("Notifications")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -330,73 +272,15 @@ namespace Proyecto2025.BD.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Organization", b =>
-                {
-                    b.HasOne("Proyecto2025.BD.Datos.Entity.User", "Admin")
-                        .WithMany()
-                        .HasForeignKey("AdminId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Admin");
-                });
-
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.User", b =>
                 {
-                    b.HasOne("Proyecto2025.BD.Datos.Entity.Organization", "Organization")
-                        .WithMany("Users")
-                        .HasForeignKey("OrganizationId");
-
-                    b.Navigation("Organization");
-                });
-
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.UserRole", b =>
-                {
                     b.HasOne("Proyecto2025.BD.Datos.Entity.Role", "Role")
-                        .WithMany("UserRoles")
+                        .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Proyecto2025.BD.Datos.Entity.User", "User")
-                        .WithMany("UserRoles")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Role");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Chat", b =>
-                {
-                    b.Navigation("Members");
-
-                    b.Navigation("Messages");
-                });
-
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Organization", b =>
-                {
-                    b.Navigation("Chats");
-
-                    b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Role", b =>
-                {
-                    b.Navigation("UserRoles");
-                });
-
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.User", b =>
-                {
-                    b.Navigation("ChatMemberships");
-
-                    b.Navigation("Notifications");
-
-                    b.Navigation("SentMessages");
-
-                    b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618
         }

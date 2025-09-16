@@ -2,10 +2,8 @@
 
 namespace Proyecto2025.BD.Datos.Entity
 {
-    public class Notification
+    public class Notification : EntityBase
     {
-        [Required(ErrorMessage = "El ID de la notificación es obligatorio")]
-        public required long Id { get; set; }
 
         [Required(ErrorMessage = "El ID de usuario es obligatorio")]
         public required long UserId { get; set; }

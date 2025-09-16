@@ -1,12 +1,23 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Proyecto2025.BD.Datos;
+using Proyecto2025.BD.Datos.Entity;
+using Proyecto2025.Repositorio.Repositorios;
 using Proyecto2025.Server.Components;
+using Proyecto2025.Server.Controllers;
+using System.Text.Json.Serialization;
 
 // Configuracion del constructor de la aplicación.
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
+// Agrego AutoMapper
+//builder.Services.AddAutoMapper(typeof(MappingProfile));
+//builder.Services.ConfigureHttpJsonOptions(options =>
+//{
+//    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+//});
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("El string de conexion no existe.");
@@ -15,7 +26,9 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-
+// builder.Services.AddScoped<IRepositorio<User>, Repositorio<User>>(); 
+// Program.cs
+builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -24,6 +37,7 @@ builder.Services.AddRazorComponents()
 
 // Constructor de la aplicacion 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
