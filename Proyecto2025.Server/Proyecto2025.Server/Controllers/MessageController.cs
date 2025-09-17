@@ -19,20 +19,21 @@ namespace Proyecto2025.Server.Controllers
         {
             this.context = context;
         }
-        [HttpGet]
+         [HttpGet]
         public async Task<ActionResult<List<Message>>> GetMensajes()
         {
-            var Message = await context.Messages.ToListAsync();
-            if (Message == null)
-            {
-                return NotFound("No se encontraron mensajes");
-            }
-            if (Message.Count == 0)
-            {
-                return Ok("No existe Messages por ahora");
-            }
-            return Ok (Message);
+          var Message = await context.Messages.ToListAsync();
+           if (Message == null)
+           {
+              return NotFound("No se encontraron mensajes");
+           }
+           if (Message.Count == 0)
+           {
+             return Ok("No existe Messages por ahora");
+           }
+              return Ok (Message);
         }
+
         [HttpGet("{Id:int}")]
         public async Task<ActionResult<Message>> GetByid(int Id)
         {
@@ -86,6 +87,21 @@ namespace Proyecto2025.Server.Controllers
         }
 
         
+
+        [HttpPut("ocultar")]
+        public async Task<ActionResult<int>> Put(Proyecto2025.Shared.DTO.OcultarMensajeDTO DTO)
+        {
+            var mensaje = await context.Messages.FirstOrDefaultAsync(x => x.Id == DTO.MensajeId);
+            if (mensaje == null)
+            {
+                return NotFound($"No existe el Mensaje con id {DTO.MensajeId}");
+            }
+             mensaje.IsArchived = true;
+             context.Messages.Update(mensaje);
+             await context.SaveChangesAsync();
+             return Ok(($"Mensaje ocultado correctamente"));
+        }
+
 
     }
 }
