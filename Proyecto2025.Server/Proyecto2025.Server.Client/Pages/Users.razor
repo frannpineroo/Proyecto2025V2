@@ -1,0 +1,56 @@
+﻿@page "/usuario"
+@using Proyecto2025.BD.Datos.Entity
+@inject Proyecto2025.Repositorio.Repositorios.IUsuarioRepositorio UsuarioRepo
+
+<h1>Lista de Usuarios</h1>
+
+@if (users == null)
+{
+    <p><em>Cargando usuarios...</em></p>
+}
+else if (users.Count == 0)
+{
+    <p>No hay usuarios registrados.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Activo</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var u in users)
+            {
+                <tr>
+                    <td>@u.FirstName</td>
+                    <td>@u.LastName</td>
+                    <td>@u.Email</td>
+                    <td>@u.Role</td>
+                    <td>@(u.IsActive ? "Sí" : "No")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<User> users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            users = await UsuarioRepo.ObtenerTodosLosUsuariosAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar usuarios: {ex.Message}");
+        }
+    }
+}

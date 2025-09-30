@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Proyecto2025.Repositorio\Proyecto2025.Repositorio.csproj" />
     <ProjectReference Include="..\..\Proyecto2025.Servicio\Proyecto2025.Servicio.csproj" />
     <ProjectReference Include="..\..\Proyecto2025.Shared\Proyecto2025.Shared.csproj" />
   </ItemGroup>
