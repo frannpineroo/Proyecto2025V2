@@ -18,6 +18,7 @@ namespace Proyecto2025.Server.Controllers
 
         public ChatController(AppDbContext context,
                               IRepositorio<Chat> repositorio)
+
         {
             this.context = context;
             this.repositorio = repositorio;

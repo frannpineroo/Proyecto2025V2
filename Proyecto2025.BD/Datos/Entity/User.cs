@@ -29,7 +29,7 @@ namespace Proyecto2025.BD.Datos.Entity
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public long? OrganizationId { get; set; }
-        public Organization? Organization { get; set; }
+        //public Organization? Organization { get; set; }
 
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
         public ICollection<ChatMember> ChatMemberships { get; set; } = new List<ChatMember>();
