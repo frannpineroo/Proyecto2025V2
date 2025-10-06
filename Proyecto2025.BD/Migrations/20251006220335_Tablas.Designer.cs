@@ -12,8 +12,8 @@ using Proyecto2025.BD.Datos;
 namespace Proyecto2025.BD.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250915221728_AddRoleIdToUsers")]
-    partial class AddRoleIdToUsers
+    [Migration("20251006220335_Tablas")]
+    partial class Tablas
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

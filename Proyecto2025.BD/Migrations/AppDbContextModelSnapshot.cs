@@ -30,14 +30,8 @@ namespace Proyecto2025.BD.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
 
                     b.Property<bool>("IsGroup")
                         .HasColumnType("bit");
@@ -71,9 +65,6 @@ namespace Proyecto2025.BD.Migrations
 
                     b.Property<long>("ChatId")
                         .HasColumnType("bigint");
-
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
 
                     b.Property<bool>("IsModerator")
                         .HasColumnType("bit");
@@ -190,9 +181,6 @@ namespace Proyecto2025.BD.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -227,43 +215,14 @@ namespace Proyecto2025.BD.Migrations
 
                     b.HasKey("Id");
 
-<<<<<<< HEAD
-=======
                     b.HasIndex("RoleId");
 
->>>>>>> 55769ae5e5faeaf4ea1aaa985e38823f4475e0c8
                     b.HasIndex(new[] { "Email" }, "Email_UQ")
                         .IsUnique();
 
                     b.ToTable("Users");
                 });
 
-<<<<<<< HEAD
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.UserRole", b =>
-                {
-                    b.Property<long>("IdUser")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("IdRole")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("RoleId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("IdUser", "IdRole");
-
-                    b.HasIndex("RoleId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserRoles");
-                });
-
-=======
->>>>>>> 55769ae5e5faeaf4ea1aaa985e38823f4475e0c8
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.ChatMember", b =>
                 {
                     b.HasOne("Proyecto2025.BD.Datos.Entity.Chat", "Chat")
@@ -313,11 +272,7 @@ namespace Proyecto2025.BD.Migrations
                     b.Navigation("User");
                 });
 
-<<<<<<< HEAD
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.UserRole", b =>
-=======
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.User", b =>
->>>>>>> 55769ae5e5faeaf4ea1aaa985e38823f4475e0c8
                 {
                     b.HasOne("Proyecto2025.BD.Datos.Entity.Role", "Role")
                         .WithMany()
@@ -326,34 +281,6 @@ namespace Proyecto2025.BD.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
-<<<<<<< HEAD
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Chat", b =>
-                {
-                    b.Navigation("Members");
-
-                    b.Navigation("Messages");
-                });
-
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Role", b =>
-                {
-                    b.Navigation("UserRoles");
-                });
-
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.User", b =>
-                {
-                    b.Navigation("ChatMemberships");
-
-                    b.Navigation("Notifications");
-
-                    b.Navigation("SentMessages");
-
-                    b.Navigation("UserRoles");
-=======
->>>>>>> 55769ae5e5faeaf4ea1aaa985e38823f4475e0c8
                 });
 #pragma warning restore 612, 618
         }

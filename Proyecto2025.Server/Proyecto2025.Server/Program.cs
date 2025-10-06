@@ -1,15 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Proyecto2025.BD.Datos;
-<<<<<<< HEAD
 using Proyecto2025.BD.Datos.Entity;
 using Proyecto2025.Repositorio.Repositorios;
 using Proyecto2025.Server.Components;
 using System;
-=======
-using Proyecto2025.Repositorio.Repositorios;
-using Proyecto2025.Server.Components;
-using System.Text.Json.Serialization;
->>>>>>> 55769ae5e5faeaf4ea1aaa985e38823f4475e0c8
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,19 +19,12 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-<<<<<<< HEAD
 builder.Services.AddScoped<IRepositorio<Chat>, Repositorio<Chat>>();
 builder.Services.AddScoped<IChatMemberRepositorio<ChatMember>, ChatMemberRepositorio<ChatMember>>();
-=======
+
 // Registro de Repositorios
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 
-// HttpClient configurado con BaseAddress
-builder.Services.AddScoped(sp => new HttpClient
-{
-    BaseAddress = new Uri("https://localhost:5001/") // ⚠️ ajustá el puerto al de tu API
-});
->>>>>>> 55769ae5e5faeaf4ea1aaa985e38823f4475e0c8
 
 // Blazor y Razor Components
 builder.Services.AddRazorComponents()
