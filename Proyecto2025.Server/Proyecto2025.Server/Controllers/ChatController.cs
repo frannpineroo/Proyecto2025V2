@@ -27,9 +27,9 @@ namespace Proyecto2025.Server.Controllers
         [HttpGet("por-chat-lista/{id}")]//listachats
         public async Task<ActionResult<List<ListaChatDTO>>> GetChatslista(long id)
         {
-            var chats = await repositorio.SelectListaChat();
+            var chats = await repositorio.SelectById(id);
             //var chats = await context.Chats.ToListAsync();
-            if (chats == null || chats.Count == 0)
+            if (chats == null)
             {
                 return NotFound("No se encontraron chats, verifique de nuevo.");
             }
@@ -49,7 +49,7 @@ namespace Proyecto2025.Server.Controllers
                     IsModerated = DTO.IsModerated,
                     CreatedAt = DTO.CreatedAt,
                     UpdatedAt = DTO.UpdatedAt,
-                    OrganizationId = DTO.OrganizationId
+                    
                 };
                 var id = await repositorio.Insert(chat);
                 return Ok(chat.Id);

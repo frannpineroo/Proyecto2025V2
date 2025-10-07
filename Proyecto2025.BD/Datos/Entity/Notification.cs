@@ -15,3 +15,4 @@ namespace Proyecto2025.BD.Datos.Entity
         public bool IsPending { get; set; } = true;
     }
 }
+

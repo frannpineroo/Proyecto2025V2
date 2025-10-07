@@ -6,6 +6,7 @@ using Proyecto2025.Server.Components;
 using System;
 using System.Text.Json.Serialization;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Controllers y Swagger

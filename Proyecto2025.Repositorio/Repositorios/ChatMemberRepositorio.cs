@@ -20,10 +20,10 @@ namespace Proyecto2025.Repositorio.Repositorios
         public async Task<List<E>> SelectByChatId(long chatId)
         {
             //var members = await context.ChatMembers
-            return await context.Set<E>().Where(cm => cm.ChatId == chatId).ToListAsync();
+            return await context.Set<E>().Where(cm => cm.Id == chatId).ToListAsync();
         }
 
-        public async Task<int> Insert(E miembrochat)
+        public async Task<long> Insert(E miembrochat)
         {
             try
             {

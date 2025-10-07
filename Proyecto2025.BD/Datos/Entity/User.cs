@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Proyecto2025.BD.Datos.Entity
 {
-    [Index(nameof(Email),Name = "Email_UQ", IsUnique = true)]
+    [Index(nameof(Email), Name = "Email_UQ", IsUnique = true)]
     public class User : EntityBase
     {
 
@@ -14,7 +14,7 @@ namespace Proyecto2025.BD.Datos.Entity
         [Required(ErrorMessage = "Este campo es requerido")]
         [MaxLength(45, ErrorMessage = "La cantidad maxima de caracteres es {45}")]
         public required string LastName { get; set; }
-        
+
 
         [Required(ErrorMessage = "Este campo es requerido")]
         [MaxLength(80, ErrorMessage = "La cantidad maxima de caracteres es {80}")]
@@ -30,18 +30,9 @@ namespace Proyecto2025.BD.Datos.Entity
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-<<<<<<< HEAD
-        public long? OrganizationId { get; set; }
-        //public Organization? Organization { get; set; }
-=======
         [Required(ErrorMessage = "El id de rol es obligatorio")]
         public required long RoleId { get; set; }
         public Role? Role { get; set; }
->>>>>>> 55769ae5e5faeaf4ea1aaa985e38823f4475e0c8
 
-        //public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
-        //public ICollection<ChatMember> ChatMemberships { get; set; } = new List<ChatMember>();
-        //public ICollection<Message> SentMessages { get; set; } = new List<Message>();
-        //public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     }
 }

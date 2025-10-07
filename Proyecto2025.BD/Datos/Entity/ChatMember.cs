@@ -7,7 +7,7 @@ namespace Proyecto2025.BD.Datos.Entity
 
         [Required(ErrorMessage = "El ID de chat es obligatorio")]
         public required long ChatId { get; set; }
-        public Chat? Chat { get; set; } 
+        public Chat? Chat { get; set; }
 
         [Required(ErrorMessage = "El ID de usuario es obligatorio")]
         public required long UserId { get; set; }
