@@ -7,6 +7,9 @@ using System;
 using System.Text.Json.Serialization;
 
 
+using Proyecto2025.Repositorio.Repositorios; 
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Controllers y Swagger
@@ -28,6 +31,7 @@ builder.Services.AddScoped<IChatMemberRepositorio<ChatMember>, ChatMemberReposit
 
 // Registro de Repositorios
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
+builder.Services.AddScoped<INotificacionRepositorio, NotificacionRepositorio>(); // <-- ¡AQUÍ ESTÁ LA LÍNEA QUE AGREGUÉ!
 
 // HttpClient configurado con BaseAddress
 builder.Services.AddScoped(sp => new HttpClient
@@ -67,5 +71,22 @@ app.MapRazorComponents<App>()
     .AddAdditionalAssemblies(typeof(Proyecto2025.Server.Client._Imports).Assembly);
 
 app.MapControllers();
+
+////////////////////////////////////////
+///
+using var scope = app.Services.CreateScope();
+var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+try
+{
+    // Esto crea la base de datos si no existe
+    context.Database.EnsureCreated();
+    Console.WriteLine("¡Conexión a la base de datos OK!");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Error de conexión: {ex.Message}");
+}
+
+
 
 app.Run();

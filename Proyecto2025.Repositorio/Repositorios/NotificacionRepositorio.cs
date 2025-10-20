@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 using Proyecto2025.BD.Datos;
 using Proyecto2025.BD.Datos.Entity;
 using Proyecto2025.Shared.DTO;
@@ -14,47 +15,46 @@ namespace Proyecto2025.Repositorio.Repositorios
             this.context = context;
         }
 
-        public async Task<Notification> CrearNotificacionAsync(CrearNotificacionDTO dto)
+        public async Task<Notification> CrearNotificacionAsync(NotificationDto dto)
         {
             var notificacion = new Notification
             {
-                Id = default,
                 Message = dto.Message,
-                UserId = dto.UserId,
+                UserId = dto.UserId, 
                 CreatedAt = DateTime.UtcNow,
                 IsPending = true
             };
 
             context.Notifications.Add(notificacion);
             await context.SaveChangesAsync();
-
             return notificacion;
         }
 
-        public async Task<List<Notification>> ObtenerNotificacionesPorUsuarioAsync(long userId)
+   
+        public async Task<List<NotificationDto>> GetPendingByUserAsync(int userId)
         {
-            return await context.Notifications
-                .Where(n => n.UserId == userId)
+            var notifications = await context.Notifications
+                .Where(n => n.UserId == userId && n.IsPending)
                 .OrderByDescending(n => n.CreatedAt)
+                .Select(n => new NotificationDto
+                {
+                    Id = n.Id,
+                    Message = n.Message,
+                    CreatedAt = n.CreatedAt,
+                    IsPending = n.IsPending,
+                    UserId = n.UserId 
+                })
                 .ToListAsync();
+
+            return notifications;
         }
 
-        public async Task<bool> MarcarComoLeidaAsync(long id)
+        public async Task<bool> MarkAsReadAsync(long notificationId)
         {
-            var notif = await context.Notifications.FindAsync(id);
-            if (notif == null) return false;
-
-            notif.IsPending = true;
-            await context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<bool> EliminarNotificacionAsync(long id)
-        {
-            var notif = await context.Notifications.FindAsync(id);
-            if (notif == null) return false;
-
-            context.Notifications.Remove(notif);
+       
+            var notification = await context.Notifications.FindAsync(notificationId);
+            if (notification == null) return false;
+            notification.IsPending = false;
             await context.SaveChangesAsync();
             return true;
         }
