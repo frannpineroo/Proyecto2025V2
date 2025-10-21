@@ -23,295 +23,265 @@ namespace Proyecto2025.BD.Migrations
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Chat", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<bool>("IsGroup")
+                    .HasColumnType("bit");
 
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
+                b.Property<bool>("IsModerated")
+                    .HasColumnType("bit");
 
-                    b.Property<bool>("IsGroup")
-                        .HasColumnType("bit");
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasMaxLength(25)
+                    .HasColumnType("nvarchar(25)");
 
-                    b.Property<bool>("IsModerated")
-                        .HasColumnType("bit");
+                b.Property<DateTime>("UpdatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(25)
-                        .HasColumnType("nvarchar(25)");
+                b.HasKey("Id");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Chats");
-                });
+                b.ToTable("Chats");
+            });
 
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.ChatMember", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<bool>("CanWrite")
-                        .HasColumnType("bit");
+                b.Property<bool>("CanWrite")
+                    .HasColumnType("bit");
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
+                b.Property<long>("ChatId")
+                    .HasColumnType("bigint");
 
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
+                b.Property<bool>("IsModerator")
+                    .HasColumnType("bit");
 
-                    b.Property<bool>("IsModerator")
-                        .HasColumnType("bit");
+                b.Property<DateTime>("JoinedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("JoinedAt")
-                        .HasColumnType("datetime2");
+                b.Property<long>("UserId")
+                    .HasColumnType("bigint");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                b.HasKey("Id");
 
-                    b.HasKey("Id");
+                b.HasIndex("ChatId");
 
-                    b.HasIndex("ChatId");
+                b.HasIndex("UserId");
 
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ChatMembers");
-                });
+                b.ToTable("ChatMembers");
+            });
 
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Message", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
+                b.Property<long>("ChatId")
+                    .HasColumnType("bigint");
 
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                b.Property<string>("Content")
+                    .IsRequired()
+                    .HasMaxLength(2000)
+                    .HasColumnType("nvarchar(2000)");
 
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
+                b.Property<bool>("IsArchived")
+                    .HasColumnType("bit");
 
-                    b.Property<bool>("IsArchived")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsRead")
+                    .HasColumnType("bit");
 
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
+                b.Property<byte[]>("MediaFile")
+                    .HasColumnType("varbinary(max)");
 
-                    b.Property<byte[]>("MediaFile")
-                        .HasColumnType("varbinary(max)");
+                b.Property<int>("MessageType")
+                    .HasColumnType("int");
 
-                    b.Property<int>("MessageType")
-                        .HasColumnType("int");
+                b.Property<long>("SenderId")
+                    .HasColumnType("bigint");
 
-                    b.Property<long>("SenderId")
-                        .HasColumnType("bigint");
+                b.Property<DateTime>("SentAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("SentAt")
-                        .HasColumnType("datetime2");
+                b.HasKey("Id");
 
-                    b.HasKey("Id");
+                b.HasIndex("ChatId");
 
-                    b.HasIndex("ChatId");
+                b.HasIndex("SenderId");
 
-                    b.HasIndex("SenderId");
-
-                    b.ToTable("Messages");
-                });
+                b.ToTable("Messages");
+            });
 
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Notification", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<bool>("IsPending")
+                    .HasColumnType("bit");
 
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
+                b.Property<string>("Message")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsPending")
-                        .HasColumnType("bit");
+                b.Property<long>("UserId")
+                    .HasColumnType("bigint");
 
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.HasKey("Id");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                b.HasIndex("UserId");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Notifications");
-                });
+                b.ToTable("Notifications");
+            });
 
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Role", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnType("nvarchar(45)");
 
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
+                b.HasKey("Id");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(45)
-                        .HasColumnType("nvarchar(45)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Roles");
-                });
+                b.ToTable("Roles");
+            });
 
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.User", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<string>("Email")
+                    .IsRequired()
+                    .HasMaxLength(80)
+                    .HasColumnType("nvarchar(80)");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                b.Property<string>("FirstName")
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnType("nvarchar(45)");
 
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
+                b.Property<bool>("IsActive")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(45)
-                        .HasColumnType("nvarchar(45)");
+                b.Property<bool>("IsOnline")
+                    .HasColumnType("bit");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                b.Property<string>("LastName")
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnType("nvarchar(45)");
 
-                    b.Property<bool>("IsOnline")
-                        .HasColumnType("bit");
+                b.Property<string>("Password")
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnType("nvarchar(45)");
 
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(45)
-                        .HasColumnType("nvarchar(45)");
+                b.Property<long>("RoleId")
+                    .HasColumnType("bigint");
 
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasMaxLength(45)
-                        .HasColumnType("nvarchar(45)");
+                b.HasKey("Id");
 
-                    b.Property<long>("RoleId")
-                        .HasColumnType("bigint");
+                b.HasIndex("RoleId");
 
-                    b.HasKey("Id");
+                b.HasIndex(new[] { "Email" }, "Email_UQ")
+                    .IsUnique();
 
-                    b.HasIndex("RoleId");
-
-                    b.HasIndex(new[] { "Email" }, "Email_UQ")
-                        .IsUnique();
-
-                    b.ToTable("Users");
-                });
+                b.ToTable("Users");
+            });
 
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.ChatMember", b =>
-                {
-                    b.HasOne("Proyecto2025.BD.Datos.Entity.Chat", "Chat")
-                        .WithMany()
-                        .HasForeignKey("ChatId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("Proyecto2025.BD.Datos.Entity.Chat", "Chat")
+                    .WithMany()
+                    .HasForeignKey("ChatId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("Proyecto2025.BD.Datos.Entity.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("Proyecto2025.BD.Datos.Entity.User", "User")
+                    .WithMany()
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Chat");
+                b.Navigation("Chat");
 
-                    b.Navigation("User");
-                });
+                b.Navigation("User");
+            });
 
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Message", b =>
-                {
-                    b.HasOne("Proyecto2025.BD.Datos.Entity.Chat", "Chat")
-                        .WithMany()
-                        .HasForeignKey("ChatId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("Proyecto2025.BD.Datos.Entity.Chat", "Chat")
+                    .WithMany()
+                    .HasForeignKey("ChatId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("Proyecto2025.BD.Datos.Entity.User", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("Proyecto2025.BD.Datos.Entity.User", "Sender")
+                    .WithMany()
+                    .HasForeignKey("SenderId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Chat");
+                b.Navigation("Chat");
 
-                    b.Navigation("Sender");
-                });
+                b.Navigation("Sender");
+            });
 
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Notification", b =>
-                {
-                    b.HasOne("Proyecto2025.BD.Datos.Entity.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("Proyecto2025.BD.Datos.Entity.User", "User")
+                    .WithMany()
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("User");
-                });
+                b.Navigation("User");
+            });
 
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.User", b =>
-                {
-                    b.HasOne("Proyecto2025.BD.Datos.Entity.Role", "Role")
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("Proyecto2025.BD.Datos.Entity.Role", "Role")
+                    .WithMany()
+                    .HasForeignKey("RoleId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Role");
-                });
+                b.Navigation("Role");
+            });
 #pragma warning restore 612, 618
         }
     }

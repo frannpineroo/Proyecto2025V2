@@ -11,12 +11,11 @@ namespace Proyecto2025.BD.Datos
 {
     public class EntityBase : IEntityBase
     {
-        public EstadoRegistro EstadoRegistro { get; set; }
+        
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // auto incremento
         [Required(ErrorMessage = "El ID es obligatorio")]
         public long Id { get; set; }
 
-        public long ChatId { get; set; }
     }
 }
