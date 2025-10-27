@@ -1,30 +1,55 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Proyecto2025.BD.Datos;
+using Proyecto2025.BD.Datos.Entity;
+using Proyecto2025.Repositorio.Repositorios;
 using Proyecto2025.Server.Components;
+using Proyecto2025.Servicio.ChatMemberServicioHttp;
+using Proyecto2025.Servicio.ChatServicioHttp;
+using System;
+using System.Text.Json.Serialization;
 
-// Configuracion del constructor de la aplicaci�n.
+
 var builder = WebApplication.CreateBuilder(args);
 
+// Controllers y Swagger
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
+
+// Agregando SignalR
+builder.Services.AddSignalR();
+
+// DbContext con SQL Server
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("El string de conexion no existe.");
-
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
+builder.Services.AddScoped<IRepositorio<Chats>, Repositorio<Chats>>();
+builder.Services.AddScoped<IChatMembersRepositorio<ChatMembers>, ChatMembersRepositorio<ChatMembers>>();
 
+// Registro de Repositorios
+builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 
-// Add services to the container.
+// HttpClient configurado con BaseAddress
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri("https://localhost:5001/") // ⚠️ ajustá el puerto al de tu API
+});
+//Registro de Servicios
+builder.Services.AddScoped<IChatServicio, ChatServicio>();
+builder.Services.AddScoped<IChatMemberServicio, ChatMemberServicio>();
+
+// Blazor y Razor Components
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
+builder.Services.AddRazorPages();
+builder.Services.AddServerSideBlazor();
 
-// Constructor de la aplicacion 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
@@ -34,13 +59,10 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
-
 app.UseAntiforgery();
 
 app.MapStaticAssets();

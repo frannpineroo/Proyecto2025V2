@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Proyecto2025.BD.Datos;
 
@@ -11,9 +12,11 @@ using Proyecto2025.BD.Datos;
 namespace Proyecto2025.BD.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251006220335_Tablas")]
+    partial class Tablas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,57 +25,16 @@ namespace Proyecto2025.BD.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.ChatMembers", b =>
+            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Chat", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<bool>("CanWrite")
-                        .HasColumnType("bit");
-
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsModerator")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("JoinedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChatId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ChatMembers");
-                });
-
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Chats", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
 
                     b.Property<bool>("IsGroup")
                         .HasColumnType("bit");
@@ -93,6 +55,38 @@ namespace Proyecto2025.BD.Migrations
                     b.ToTable("Chats");
                 });
 
+            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.ChatMember", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("CanWrite")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("ChatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsModerator")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ChatMembers");
+                });
+
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Message", b =>
                 {
                     b.Property<long>("Id")
@@ -108,9 +102,6 @@ namespace Proyecto2025.BD.Migrations
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
-
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
 
                     b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
@@ -147,14 +138,8 @@ namespace Proyecto2025.BD.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
 
                     b.Property<bool>("IsPending")
                         .HasColumnType("bit");
@@ -181,12 +166,6 @@ namespace Proyecto2025.BD.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(45)
@@ -205,9 +184,6 @@ namespace Proyecto2025.BD.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -215,9 +191,6 @@ namespace Proyecto2025.BD.Migrations
                         .IsRequired()
                         .HasMaxLength(80)
                         .HasColumnType("nvarchar(80)");
-
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -253,9 +226,9 @@ namespace Proyecto2025.BD.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.ChatMembers", b =>
+            modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.ChatMember", b =>
                 {
-                    b.HasOne("Proyecto2025.BD.Datos.Entity.Chats", "Chat")
+                    b.HasOne("Proyecto2025.BD.Datos.Entity.Chat", "Chat")
                         .WithMany()
                         .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -274,7 +247,7 @@ namespace Proyecto2025.BD.Migrations
 
             modelBuilder.Entity("Proyecto2025.BD.Datos.Entity.Message", b =>
                 {
-                    b.HasOne("Proyecto2025.BD.Datos.Entity.Chats", "Chat")
+                    b.HasOne("Proyecto2025.BD.Datos.Entity.Chat", "Chat")
                         .WithMany()
                         .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
