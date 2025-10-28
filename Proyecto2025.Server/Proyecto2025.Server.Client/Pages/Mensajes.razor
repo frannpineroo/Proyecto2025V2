@@ -1,0 +1,79 @@
+﻿@page "/mensajes"
+@using Proyecto2025.Shared.DTO
+@inject IHttpServicio http
+@inject NavigationManager navHttp
+
+<h3>💬 Chat</h3>
+
+<div class="chat-container">
+    <div class="messages-box">
+        @if (mensajes == null)
+        {
+            <p>Cargando mensajes...</p>
+        }
+        else if (mensajes.Count == 0)
+        {
+            <p>No hay mensajes aún.</p>
+        }
+        else
+        {
+            @foreach (var mensaje in mensajes)
+            {
+                <div class="message">
+                    <b>@mensaje.SenderName:</b> @mensaje.Content
+                </div>
+            }
+        }
+    </div>
+
+    <div class="input-area">
+        <input @bind="nuevoMensaje.Content" @bind:event="oninput"
+               placeholder="Escribe un mensaje..." class="form-control" />
+        <button class="btn btn-primary" @onclick="EnviarMensaje">Enviar</button>
+    </div>
+</div>
+
+@code {
+    List<VerMensajesDTO> mensajes = new();
+    CrearMensajeDTO nuevoMensaje = new();
+    string Mensaje = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LeerMensajes();
+    }
+
+    private async Task LeerMensajes()
+
+    {
+        var resp = await http.Get<List<VerMensajesDTO>>("api/message");
+        if(!resp.Error)
+        {
+            mensajes = resp.Respuesta;
+        }
+        //Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(nuevoMensaje));
+        //mensajes = await http.GetFromJsonAsync<List<VerMensajesDTO>>("api/message");
+    }
+
+    private async Task EnviarMensaje()
+    {
+        var httpResp = await http.Post<CrearMensajeDTO, long>("api/message", nuevoMensaje);
+        if(!httpResp.Error)
+        {
+            navHttp.NavigateTo("/mensajes");
+        }
+        else
+        {
+            Mensaje = httpResp.ObtenerError();
+        }
+    }
+    }
+
+    
+         
+    
+    
+       
+       
+       
+    

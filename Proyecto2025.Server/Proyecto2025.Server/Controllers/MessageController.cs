@@ -1,14 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto2025.BD.Datos;
 using Proyecto2025.BD.Datos.Entity;
-using Microsoft.EntityFrameworkCore;
 using Proyecto2025.Repositorio.Repositorios;
+using Proyecto2025.Shared.DTO;
+using Proyecto2025.Shared.ENUM;
 
 
 namespace Proyecto2025.Server.Controllers
 {
     [ApiController]
-    [Route("Api/Message")]
+    [Route("api/message")]
     
     public class MessageController : ControllerBase
     {
@@ -19,20 +21,17 @@ namespace Proyecto2025.Server.Controllers
         {
             this.context = context;
         }
-         [HttpGet]
-        public async Task<ActionResult<List<Message>>> GetMensajes()
+        [HttpGet]
+        public async Task<ActionResult<List<Message>>> GetAll()
         {
-          var Message = await context.Messages.ToListAsync();
-           if (Message == null)
-           {
-              return NotFound("No se encontraron mensajes");
-           }
-           if (Message.Count == 0)
-           {
-             return Ok("No existe Messages por ahora");
-           }
-              return Ok (Message);
+            var messages = await context.Messages
+                .Include(m => m.Chat)
+                .Include(m => m.Sender)
+                .OrderBy(m => m.SentAt)
+                .ToListAsync();
+            return Ok(messages);
         }
+      
 
         [HttpGet("{Id:int}")]
         public async Task<ActionResult<Message>> GetByid(int Id)
@@ -44,49 +43,48 @@ namespace Proyecto2025.Server.Controllers
             }
             return Ok(messaje);
         }
+
         [HttpPost]
-        public async Task<ActionResult<int>> Post(Message DTO)
+        public async Task<ActionResult<int>> Post([FromBody] CrearMensajeDTO dto)
         {
-            await context.Messages.AddAsync(DTO);
+            if (dto == null)
+                return BadRequest("El mensaje recibido está vacío.");
+
+            if (string.IsNullOrWhiteSpace(dto.Content))
+                return BadRequest("El mensaje no puede estar vacío.");
+
+            // Verificar que el Chat exista
+            var chatExiste = await context.Chats.AnyAsync(c => c.Id == dto.ChatId);
+            if (!chatExiste)
+                return BadRequest($"No existe un chat con Id = {dto.ChatId}");
+
+            // Convertir el string del DTO al enum
+            if (!Enum.TryParse<MessageType>(dto.MessageType, true, out var tipoMensaje))
+            {
+                tipoMensaje = MessageType.text; // valor por defecto
+            }
+
+            var nuevo = new Message
+            {
+                ChatId = dto.ChatId,
+                SenderId = dto.SenderId,
+                Content = dto.Content,
+                MediaFile = dto.MediaFile,
+                MessageType = tipoMensaje,
+                SentAt = dto.SentAt
+            };
+
+            context.Messages.Add(nuevo);
             await context.SaveChangesAsync();
-            return Ok(DTO.Id);
+
+            return Ok(nuevo.Id);
         }
 
-        [HttpDelete("{Id:int}")]
-        public async Task<ActionResult> Delete(int Id)
-        {
-            var existe = await context.Messages.AnyAsync(x => x.Id == Id);
-            if (existe == false)
-            {
-                return NotFound($"No Existe el Mensaje con el Id: {Id}.");
-            }
-            var messaje = await context.Messages.FirstOrDefaultAsync(x => x.Id == Id);
-            if (messaje is null)
-            {
-                return NotFound($"No se encontro el Mensaje con el Id: {Id}.");
-            }
-            context.Messages.Remove(messaje);
-            await context.SaveChangesAsync();
-            return Ok($"Mensaje con el Id {Id} eliminado correctamente");
-        }
-        [HttpPut("{Id:int}")]
-        public async Task<ActionResult> Put(int Id, Message DTO)
-        { if
-                (Id != DTO.Id)
-            {
-                return BadRequest("Datos no validos");
-            }
-        var existe = await context.Messages.AnyAsync (x => x.Id == Id);
-            if(existe !)
-            { 
-                return NotFound($"No existe el Mensaje con id {Id}");
-            }
-            context.Update(DTO);
-            await context.SaveChangesAsync();
-            return Ok($"Mensaje con id {Id} actualizado correctamente");
-        }
 
-        
+
+
+
+
 
         [HttpPut("ocultar")]
         public async Task<ActionResult<int>> Put(Proyecto2025.Shared.DTO.OcultarMensajeDTO DTO)
