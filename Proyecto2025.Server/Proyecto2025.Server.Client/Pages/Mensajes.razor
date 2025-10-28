@@ -1,5 +1,7 @@
 ﻿@page "/mensajes"
 @using Proyecto2025.Shared.DTO
+@using Microsoft.AspNetCore.SignalR.Client
+
 @inject IHttpServicio http
 @inject NavigationManager navHttp
 
@@ -34,13 +36,36 @@
 </div>
 
 @code {
+    private HubConnection? hubConnection;
     List<VerMensajesDTO> mensajes = new();
     CrearMensajeDTO nuevoMensaje = new();
     string Mensaje = "";
+    private readonly int chatId = 2; // ID del chat actual (debería cambiar segun el chat en la version final)
+
 
     protected override async Task OnInitializedAsync()
     {
         await LeerMensajes();
+        // Si el servidor y cliente comparten origen:
+        var hubUrl = navHttp.ToAbsoluteUri("/messagehub");
+        // Si el servidor está en otro puerto, usa new Uri("https://localhost:7016/messagehub")
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(hubUrl)
+            .WithAutomaticReconnect()
+            .Build();
+
+        // Suscribirse al evento. Asegúrate que el servidor envía un objeto compatible con VerMensajesDTO
+        hubConnection.On<VerMensajesDTO>("ReceiveMessage", (msg) =>
+        {
+            mensajes.Add(msg);
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+
+        // Unirse al grupo del chat para recibir solo mensajes de ese chat
+        await hubConnection.SendAsync("JoinGroup", $"chat-{chatId}");
     }
 
     private async Task LeerMensajes()
@@ -51,21 +76,35 @@
         {
             mensajes = resp.Respuesta;
         }
-        //Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(nuevoMensaje));
-        //mensajes = await http.GetFromJsonAsync<List<VerMensajesDTO>>("api/message");
+
     }
 
     private async Task EnviarMensaje()
     {
+        //validacion basica
+
+        if (nuevoMensaje == null || string.IsNullOrWhiteSpace(nuevoMensaje.Content))
+        {
+            Mensaje = "Escribe un mensaje antes de enviar.";
+            return;
+        }
+        //asignar las propiedades necesarias al DTO antes de enviarlo
+
+        nuevoMensaje.ChatId = 2; //esto deberia ser el id del chat actual
+        nuevoMensaje.SenderId = 3; //esto deberia ser el id del usuario logueado
+        nuevoMensaje.MessageType = "text"; //tipo de mensaje
+        nuevoMensaje.SentAt = DateTime.UtcNow; //fecha y hora actual en UTC
+
+        //enviar el mensaje 400 si el DTO exige Mediafile, enviar array vacio si no hay archivo
         var httpResp = await http.Post<CrearMensajeDTO, long>("api/message", nuevoMensaje);
-        if(!httpResp.Error)
-        {
-            navHttp.NavigateTo("/mensajes");
-        }
-        else
-        {
-            Mensaje = httpResp.ObtenerError();
-        }
+
+        //actualizar la lista de mensajes despues de enviar
+        await LeerMensajes();
+
+        //limpiar textbox
+        nuevoMensaje.Content = string.Empty;
+        Mensaje = string.Empty;
+   }
     }
     }
 

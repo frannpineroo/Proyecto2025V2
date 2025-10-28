@@ -7,7 +7,8 @@ using System;
 using System.Text.Json.Serialization;
 
 
-using Proyecto2025.Repositorio.Repositorios; 
+using Proyecto2025.Repositorio.Repositorios;
+using Proyecto2025.Server.Hubs;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,7 +40,7 @@ builder.Services.AddScoped(sp => new HttpClient
     BaseAddress = new Uri("https://localhost:7016/") // ⚠️ ajustá el puerto al de tu API
 });
 
-// Registro del MessageApiService
+
 
 
 // Blazor y Razor Components
@@ -73,9 +74,9 @@ app.MapRazorComponents<App>()
     .AddAdditionalAssemblies(typeof(Proyecto2025.Server.Client._Imports).Assembly);
 
 app.MapControllers();
+// Mapeo del Hub de SignalR
+app.MapHub<MessageHub>("/messagehub");
 
-////////////////////////////////////////
-///
 using var scope = app.Services.CreateScope();
 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 try

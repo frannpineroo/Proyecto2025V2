@@ -7,10 +7,10 @@ namespace Proyecto2025.Shared.DTO
     public class CrearMensajeDTO
     {
         [Required]
-        public long ChatId { get; set; } //= 2;
+        public long ChatId { get; set; } = 2;
 
         [Required]
-        public long SenderId { get; set; } //= 3;
+        public long SenderId { get; set; } = 3;
 
     [Required]
       [MaxLength(2000, ErrorMessage = "El mensaje no puede tener mas de 2000 caracteres")]

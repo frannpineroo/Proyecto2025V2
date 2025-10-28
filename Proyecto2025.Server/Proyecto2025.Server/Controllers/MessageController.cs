@@ -5,6 +5,9 @@ using Proyecto2025.BD.Datos.Entity;
 using Proyecto2025.Repositorio.Repositorios;
 using Proyecto2025.Shared.DTO;
 using Proyecto2025.Shared.ENUM;
+using Microsoft.AspNetCore.SignalR;
+using Proyecto2025.Server.Hubs;
+
 
 
 namespace Proyecto2025.Server.Controllers
@@ -15,11 +18,13 @@ namespace Proyecto2025.Server.Controllers
     public class MessageController : ControllerBase
     {
         private readonly AppDbContext context;
+        private readonly IHubContext<MessageHub> _hubContext;
         private readonly IMensajeRepositorio mensajeRepository;
         //private readonly IMapper mapper;
-        public MessageController(AppDbContext context)
+        public MessageController(AppDbContext context, IHubContext<MessageHub> hubContext, IMensajeRepositorio mensajeRepositorio)
         {
             this.context = context;
+            _hubContext = hubContext;
         }
         [HttpGet]
         public async Task<ActionResult<List<Message>>> GetAll()
@@ -77,6 +82,19 @@ namespace Proyecto2025.Server.Controllers
             context.Messages.Add(nuevo);
             await context.SaveChangesAsync();
 
+            //construccion de de payload que el cliente entienda 
+            var payload = new
+            {
+                ChatId = dto.ChatId,
+                SenderId = dto.SenderId,
+                Content = dto.Content,
+                MediaFile = dto.MediaFile,
+                MessageType = tipoMensaje,
+                SentAt = dto.SentAt
+            };
+
+            //enviar el mensaje a un grupo
+            await _hubContext.Clients.Group($"chat-{dto.ChatId}").SendAsync("ReceiveMessage", payload);
             return Ok(nuevo.Id);
         }
 
