@@ -1,28 +1,31 @@
-﻿    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.EntityFrameworkCore;
-    using Proyecto2025.BD.Datos;
-    using Proyecto2025.BD.Datos.Entity;
-    using Proyecto2025.Repositorio.Repositorios;
-    using Proyecto2025.Shared.DTO;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Proyecto2025.BD.Datos;
+using Proyecto2025.BD.Datos.Entity;
+using Proyecto2025.Repositorio.Repositorios;
+using Proyecto2025.Shared.DTO;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Proyecto2025.Server.Controllers
 {
     [ApiController]
     [Route("api/Chat")]
-    public class ChatController : ControllerBase
+    public class ChatsController : ControllerBase
     {
         private readonly AppDbContext context;
         private readonly IRepositorio<Chat> repositorio;
 
-        public ChatController(AppDbContext context,
+        public ChatsController(AppDbContext context,
                               IRepositorio<Chat> repositorio)
 
         {
             this.context = context;
             this.repositorio = repositorio;
         }
+        //agregar los http de obtener todos los chats y tambien en chat members y agregar los metodos en un nuevo repositor llamado chatrepositorio
+        //y en el ichatrepositorio agregar los metodos necesarios para obtener todos los chats y tambien los metodos necesarios para chat members
         #region
         [HttpGet("por-chat-lista/{id}")]//listachats
         public async Task<ActionResult<List<ListaChatDTO>>> GetChatslista(long id)
@@ -36,8 +39,8 @@ namespace Proyecto2025.Server.Controllers
             return Ok(chats);
         }
 
-        [HttpPost]
-        public async Task<ActionResult<long>> Post(ChatDTO DTO)
+        [HttpPost] //api/chat/registro
+        public async Task<ActionResult<long>> Post([FromBody] ChatsDTO DTO)
         {
             try
             {
@@ -49,7 +52,6 @@ namespace Proyecto2025.Server.Controllers
                     IsModerated = DTO.IsModerated,
                     CreatedAt = DTO.CreatedAt,
                     UpdatedAt = DTO.UpdatedAt,
-                    
                 };
                 var id = await repositorio.Insert(chat);
                 return Ok(chat.Id);
@@ -93,7 +95,7 @@ namespace Proyecto2025.Server.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(long id)
         {
-           
+
             var chat = await context.Chats.FirstOrDefaultAsync(c => c.Id == id);
             //var chat = await context.Chats.FindAsync(id);
             if (chat == null)
@@ -125,7 +127,7 @@ namespace Proyecto2025.Server.Controllers
             }
             return Ok(chat);
         }
-         
+
         [HttpDelete("por-nombre/{Name}")]
         public async Task<ActionResult> DeleteChatByName(string Name)
         {
@@ -202,4 +204,3 @@ namespace Proyecto2025.Server.Controllers
 
     }
 }
- 

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Proyecto2025.BD.Datos;
 using Proyecto2025.BD.Datos.Entity;
 using Proyecto2025.Repositorio.Repositorios;
+using Proyecto2025.Shared.DTO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -11,12 +12,12 @@ namespace Proyecto2025.Server.Controllers
 {
     [ApiController]
     [Route("api/ChatMember")]
-    public class ChatMemberController : ControllerBase
+    public class ChatMembersController : ControllerBase
     {
         private readonly AppDbContext context;
         private readonly IChatMemberRepositorio<ChatMember> chatMemberRepositorio;
 
-        public ChatMemberController(AppDbContext context,
+        public ChatMembersController(AppDbContext context,
             IChatMemberRepositorio<ChatMember> chatMemberRepositorio)
         {
             this.context = context;
@@ -29,7 +30,7 @@ namespace Proyecto2025.Server.Controllers
             // Inicialización simplificada y con miembros requeridos
             ChatMember member = new ChatMember
             {
-                Id = chatId,
+                Id = (int)chatId,
                 ChatId = chatId,
                 UserId = 1, // Asigna un valor válido a UserId
                 IsModerator = false,
@@ -40,29 +41,34 @@ namespace Proyecto2025.Server.Controllers
             //await context.SaveChangesAsync();
             //var members = await context.ChatMembers
             var members = await chatMemberRepositorio.SelectByChatId(chatId);
-                //.Include(cm => cm.User) // Incluye la entidad User relacionada
-                //.Where(cm => cm.ChatId == chatId)
-                //.ToListAsync();
+            //.Include(cm => cm.User) // Incluye la entidad User relacionada
+            //.Where(cm => cm.ChatId == chatId)
+            //.ToListAsync();
             if (members == null || members.Count == 0)
             {
                 return NotFound("No members found for this chat.");
             }
             return Ok(members);
         }
-
-        [HttpPost]
-        public async Task<ActionResult<ChatMember>> GetChatMemberById(long id)
+        [HttpPost("aceptar")]
+        public async Task<ActionResult<ChatMember>> InsertMiembro([FromBody] ChatMembersDTO dto)
         {
-            var member = await context.ChatMembers.FindAsync(id);
-            //var member = await context.ChatMembers
-            //.Include(cm => cm.User) // Incluye la entidad User relacionada
-            //.FirstOrDefaultAsync(cm => cm.Id == id);
-            if (member == null)
+            var entidad = new ChatMember
             {
-                return NotFound("Member not found.");
-            }
-            return Ok(member);
+                ChatId = dto.ChatId,
+                UserId = dto.UserId,
+                IsModerator = dto.IsModerator,
+                CanWrite = dto.CanWrite,
+                JoinedAt = DateTime.UtcNow
+            };
+
+            var id = await chatMemberRepositorio.Insert(entidad);
+            entidad.Id = (int)id;
+
+            return Ok(entidad);
         }
+
+
 
         [HttpPut("por-id/{Id}")]
         public async Task<IActionResult> UpdateChatMember(long id, ChatMember updatedMember)
@@ -82,7 +88,7 @@ namespace Proyecto2025.Server.Controllers
                 await context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
-            
+
             {
                 if (!ChatMemberExists(id))
                 {

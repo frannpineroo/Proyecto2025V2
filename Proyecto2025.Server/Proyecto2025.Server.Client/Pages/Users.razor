@@ -1,6 +1,7 @@
 ﻿@page "/usuarios"
-@using Proyecto2025.BD.Datos.Entity
-@inject Proyecto2025.Repositorio.Repositorios.IUsuarioRepositorio UsuarioRepo
+
+
+@inject IUsuarioRepositorio UsuarioRepo
 
 <h1>Lista de Usuarios</h1>
 
@@ -40,7 +41,7 @@ else
 }
 
 @code {
-    private List<User> users;
+    private List<User>? users;
 
     protected override async Task OnInitializedAsync()
     {

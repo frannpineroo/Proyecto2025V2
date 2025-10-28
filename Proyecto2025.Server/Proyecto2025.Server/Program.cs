@@ -3,11 +3,15 @@ using Proyecto2025.BD.Datos;
 using Proyecto2025.BD.Datos.Entity;
 using Proyecto2025.Repositorio.Repositorios;
 using Proyecto2025.Server.Components;
+using Proyecto2025.Servicio.ServiciosHttp;
 using System;
 using System.Text.Json.Serialization;
+using Proyecto2025.Servicio.ChatServicioHttp;
+using System;
+using System.Text.Json.Serialization;
+using Proyecto2025.Servicio.ChatMemberHttp;
+using Proyecto2025.Servicio.ChatMemberServicioHttp;
 
-
-using Proyecto2025.Repositorio.Repositorios; 
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,7 +35,7 @@ builder.Services.AddScoped<IChatMemberRepositorio<ChatMember>, ChatMemberReposit
 
 // Registro de Repositorios
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
-builder.Services.AddScoped<INotificacionRepositorio, NotificacionRepositorio>(); // <-- ¡AQUÍ ESTÁ LA LÍNEA QUE AGREGUÉ!
+builder.Services.AddScoped<INotificacionRepositorio, NotificacionRepositorio>(); 
 builder.Services.AddScoped<IMensajeRepositorio, MensajeRepositorio>();
 // HttpClient configurado con BaseAddress
 builder.Services.AddScoped(sp => new HttpClient
@@ -39,8 +43,9 @@ builder.Services.AddScoped(sp => new HttpClient
     BaseAddress = new Uri("https://localhost:7016/") // ⚠️ ajustá el puerto al de tu API
 });
 
-// Registro del MessageApiService
-
+//Registro de Servicios
+builder.Services.AddScoped<IChatServicio, ChatServicio>();
+builder.Services.AddScoped<IChatMemberServicio, ChatMemberServicio>();
 
 // Blazor y Razor Components
 builder.Services.AddRazorComponents()
@@ -48,6 +53,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+
+//builder.Services.AddHttpClient<IHttpServicio, HttpServicio>();
 
 var app = builder.Build();
 
@@ -74,8 +81,7 @@ app.MapRazorComponents<App>()
 
 app.MapControllers();
 
-////////////////////////////////////////
-///
+
 using var scope = app.Services.CreateScope();
 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 try

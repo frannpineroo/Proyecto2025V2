@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Proyecto2025.BD.Datos;
 using Proyecto2025.BD.Datos.Entity;
 using Proyecto2025.Repositorio.Repositorios;
 using Proyecto2025.Shared.DTO;
