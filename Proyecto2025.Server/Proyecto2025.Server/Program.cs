@@ -7,7 +7,8 @@ using System;
 using System.Text.Json.Serialization;
 
 
-using Proyecto2025.Repositorio.Repositorios; 
+using Proyecto2025.Repositorio.Repositorios;
+using Proyecto2025.Server.Hubs;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,12 +33,15 @@ builder.Services.AddScoped<IChatMemberRepositorio<ChatMember>, ChatMemberReposit
 // Registro de Repositorios
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<INotificacionRepositorio, NotificacionRepositorio>(); // <-- ¡AQUÍ ESTÁ LA LÍNEA QUE AGREGUÉ!
-
+builder.Services.AddScoped<IMensajeRepositorio, MensajeRepositorio>();
 // HttpClient configurado con BaseAddress
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri("https://localhost:5001/") // ⚠️ ajustá el puerto al de tu API
+    BaseAddress = new Uri("https://localhost:7016/") // ⚠️ ajustá el puerto al de tu API
 });
+
+
+
 
 // Blazor y Razor Components
 builder.Services.AddRazorComponents()
@@ -63,7 +67,6 @@ else
 
 app.UseHttpsRedirection();
 app.UseAntiforgery();
-
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
@@ -71,9 +74,9 @@ app.MapRazorComponents<App>()
     .AddAdditionalAssemblies(typeof(Proyecto2025.Server.Client._Imports).Assembly);
 
 app.MapControllers();
+// Mapeo del Hub de SignalR
+app.MapHub<MessageHub>("/messagehub");
 
-////////////////////////////////////////
-///
 using var scope = app.Services.CreateScope();
 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 try

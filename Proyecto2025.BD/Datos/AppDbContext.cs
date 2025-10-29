@@ -24,11 +24,6 @@ namespace Proyecto2025.BD.Datos
             base.OnModelCreating(modelBuilder);
             // Aquí puedes configurar tus entidades, relaciones, etc.
 
-            // Configurar relacion explicita entre Organization y Admin (User)
-            modelBuilder.Entity<User>()
-                        .HasOne(u => u.Role)
-                        .WithMany()
-                        .HasForeignKey(u => u.RoleId);
         }
     }
 }
