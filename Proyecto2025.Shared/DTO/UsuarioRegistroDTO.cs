@@ -2,13 +2,10 @@
 
 namespace Proyecto2025.Shared.DTO
 {
-    public class CrearUsuarioDTO
+    public class UsuarioRegistroDTO
     {
         [Required(ErrorMessage = "El nombre es obligatorio.")]
-        public string FirstName { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "El apellido es obligatorio.")]
-        public string LastName { get; set; } = string.Empty;
+        public string Nombre { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El email es obligatorio.")]
         [EmailAddress(ErrorMessage = "El email no tiene un formato válido.")]
@@ -17,8 +14,5 @@ namespace Proyecto2025.Shared.DTO
         [Required(ErrorMessage = "La contraseña es obligatoria.")]
         [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres.")]
         public string Password { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Debe especificarse un rol.")]
-        public long RoleId { get; set; }
     }
 }

@@ -1,0 +1,99 @@
+﻿@page "/registrar-user"
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h1>Registrar Usuario</h1>
+<p>Registrate en el sistema para poder ingresar</p>
+
+@if (!string.IsNullOrEmpty(mensaje))
+{
+    <div class="alert @mensajeClase">@mensaje</div>
+}
+
+<EditForm Model="@nuevoUsuario" OnValidSubmit="RegistrarUsuario" FormName="registrarForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Nombre</label>
+        <InputText class="form-control" @bind-Value="nuevoUsuario.FirstName" />
+        <ValidationMessage For="@(() => nuevoUsuario.FirstName)" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Apellido</label>
+        <InputText class="form-control" @bind-Value="nuevoUsuario.LastName" />
+        <ValidationMessage For="@(() => nuevoUsuario.LastName)" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <InputText type="email" class="form-control" @bind-Value="nuevoUsuario.Email" />
+        <ValidationMessage For="@(() => nuevoUsuario.Email)" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Contraseña</label>
+        <InputText type="password" class="form-control" @bind-Value="nuevoUsuario.Password" />
+        <ValidationMessage For="@(() => nuevoUsuario.Password)" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Rol (ID)</label>
+        <InputNumber class="form-control" @bind-Value="nuevoUsuario.RoleId" />
+        <ValidationMessage For="@(() => nuevoUsuario.RoleId)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+        @(isSubmitting ? "Registrando..." : "Registrarse")
+    </button>
+
+    <button type="button" class="btn btn-link" @onclick="IrALogin">Iniciar Sesión</button>
+</EditForm>
+
+@code {
+    private CrearUsuarioDTO nuevoUsuario = new();
+    private string? mensaje;
+    private string mensajeClase = "";
+    private bool isSubmitting = false;
+
+    private async Task RegistrarUsuario()
+    {
+        isSubmitting = true;
+        mensaje = string.Empty;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/Usuario", nuevoUsuario);
+
+            if (response.IsSuccessStatusCode)
+            {
+                mensaje = "✅ Usuario registrado exitosamente.";
+                mensajeClase = "alert-success";
+                await Task.Delay(1500);
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                mensaje = $"❌ Error al registrar usuario: {error}";
+                mensajeClase = "alert-danger";
+            }
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"❌ Error de conexión: {ex.Message}";
+            mensajeClase = "alert-danger";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void IrALogin()
+    {
+        Navigation.NavigateTo("/login");
+    }
+}
