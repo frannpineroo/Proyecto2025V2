@@ -1,6 +1,7 @@
 ﻿@page "/chat"
+@using Proyecto2025.Servicio.ServiciosHttp
 
-@inject IChatServicio Http
+@inject IHttpServicio http
 
 <h3>Listar Chat</h3>
 <br />
@@ -28,13 +29,13 @@
                 <td>@reg.IsModerated</td>
                 <td>
                     <a class="btn btn-primary"
-                       href="/chat/editar/{registro.Id}">
+                    href="/chat/editar/{registro.Id}">
                         Editar
                     </a>
                 </td>
                 <td>
                     <button class="btn btn-danger"
-                            @onclick="() => Borrar(reg)">
+                    @onclick="() => Borrar(reg)">
                         Borrar
                     </button>
                 </td>
@@ -68,15 +69,15 @@
 
         //registro = await Http.GetFromJsonAsync<List<RegistroUsuarioDTO>>("api/registrousuario/registro");
 
-        //var respuesta = await Http.Get<List<ChatsDTO>>("api/Chat");
-        var respuesta = await Http.GetEsAsync<List<ListaChatDTO>>("api/Chat");//("api/chat/por-chat-lista/1"); // esto es de prueba el de arriba anda bien, pero falta hacer el endpoint en el backend
+        var respuesta = await http.Get<List<ListaChatDTO>>("api/Chat");
+        //var respuesta = await Http.GetEsAsync<List<ListaChatDTO>>("api/Chat");//("api/chat/por-chat-lista/1"); // esto es de prueba el de arriba anda bien, pero falta hacer el endpoint en el backend
         if (!respuesta.Error)
         {
             registro = respuesta.Respuesta;
         }
         else
         {
-            mensaje = respuesta.OptenerError();
+            mensaje = respuesta.ObtenerError();
         }
 
     }
@@ -111,10 +112,10 @@
 
     private async Task Borrar(ListaChatDTO reg)
     {
-        var respuesta = await Http.Delete($"api/chat/{reg.Id}");
+        var respuesta = await http.Delete($"api/chat/{reg.Id}");
         if (respuesta.Error)
         {
-            mensaje = respuesta.OptenerError();
+            mensaje = respuesta.ObtenerError();
         }
         await LeerRegistros();
     }

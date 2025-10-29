@@ -17,10 +17,6 @@ namespace Proyecto2025.Repositorio.Repositorios
         {
             this.context = context;
         }
-        public async Task<List<E>> GetEsAsync()
-        {
-            return await context.Set<E>().ToListAsync();
-        }
 
         public async Task<List<E>> Select()
         {

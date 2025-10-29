@@ -4,7 +4,7 @@ namespace Proyecto2025.Repositorio.Repositorios
 {
     public interface IRepositorio<E> where E : class, IEntityBase
     {
-        Task<List<E>> GetEsAsync();
+        
         Task<long> Insert(E entidad);
         Task<List<E>> Select();
         Task<E?> SelectById(long id);

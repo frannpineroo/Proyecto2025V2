@@ -1,6 +1,7 @@
 ﻿@page "/chatmiembro"
+@using Proyecto2025.Servicio.ServiciosHttp
 
-@inject IChatMemberServicio Http
+@inject IHttpServicio Http
 
 <h3>Listar Chat Miembro</h3>
 <br />
@@ -23,6 +24,9 @@
         @foreach (var reg in registro)
         {
             <tr>
+                <td>@reg.Id</td>
+                <td>@reg.UserId</td>
+                <td>@reg.ChatId</td>
                 <td>@reg.IsModerator</td>
                 <td>@reg.CanWrite</td>
                 <td>@reg.JoinedAt</td>
@@ -59,32 +63,25 @@
 
     private async Task LeerRegistros()
     {
-        // await Task.Delay(2000);
-        // registro = new List<RegistroUsuarioDTO>();
-        // await Task.Delay(2000);
-        // registro.Add(new RegistroUsuarioDTO { codigoingreso = 1, nombre = "Dante", apellido = "Gomez" });
-        // await Task.Delay(2000);
-        // registro.Add(new RegistroUsuarioDTO { codigoingreso = 1, nombre = "Vandal", apellido = "Abad" });
-
-        //registro = await Http.GetFromJsonAsync<List<RegistroUsuarioDTO>>("api/registrousuario/registro");
-        var respuesta = await Http.Get<List<ListaChatMemberDTO>>("api/chatmember/registro");
-        if (respuesta.Error)
+      
+        var respuesta = await Http.Get<List<ListaChatMemberDTO>>("api/ChatMember");
+        if (!respuesta.Error)
         {
             registro = respuesta.Respuesta;
         }
         else
         {
-            mensaje = respuesta.OptenerError();
+            mensaje = respuesta.ObtenerError();
         }
 
     }
 
     private async Task Borrar(ListaChatMemberDTO reg)
     {
-        var respuesta = await Http.Delete($"api/chatmember/{reg.Id}");
+        var respuesta = await Http.Delete($"api/ChatMember/{reg.Id}");
         if (respuesta.Error)
         {
-            mensaje = respuesta.OptenerError();
+            mensaje = respuesta.ObtenerError();
         }
         await LeerRegistros();
     }

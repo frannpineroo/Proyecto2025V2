@@ -19,7 +19,5 @@ namespace Proyecto2025.Shared.DTO
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        [Required(ErrorMessage = "La organizacion es obligatoria")]
-        public long? OrganizationId { get; set; }
     }
 }

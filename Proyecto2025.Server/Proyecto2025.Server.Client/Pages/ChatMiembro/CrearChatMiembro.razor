@@ -64,7 +64,7 @@
 
     private async Task Grabar()
     {
-        var respuesta = await http.Post<ChatMemberDTO, int>("api/chatmember/aceptar", chatmember);
+        var respuesta = await http.Post<ChatMemberDTO, int>("api/ChatMember", chatmember);
         if (!respuesta.Error)
         {
             navHttp.NavigateTo("/chatmiembro");

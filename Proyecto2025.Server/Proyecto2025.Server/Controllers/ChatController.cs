@@ -27,7 +27,7 @@ namespace Proyecto2025.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Chat>>> GetAll()
         {
-            var chats = await repositorio.GetEsAsync();
+            var chats = await repositorio.Select();
             if (chats == null)
             {
                 return NotFound("No se encontraron chats, verifique de nuevo.");

@@ -2,11 +2,11 @@
 using Proyecto2025.BD.Datos;
 using Proyecto2025.BD.Datos.Entity;
 using Proyecto2025.Repositorio.Repositorios;
-using Proyecto2025.Repositorio.Repositorios;
 using Proyecto2025.Server.Components;
 using Proyecto2025.Server.Hubs;
 using Proyecto2025.Servicio.ChatMemberServicioHttp;
 using Proyecto2025.Servicio.ChatServicioHttp;
+using Proyecto2025.Servicio.ServiciosHttp;
 using System;
 using System.Text.Json.Serialization;
 
@@ -36,6 +36,7 @@ builder.Services.AddScoped<INotificacionRepositorio, NotificacionRepositorio>();
 builder.Services.AddScoped<IMensajeRepositorio, MensajeRepositorio>();
 builder.Services.AddScoped<IChatServicio, ChatServicio>();
 builder.Services.AddScoped<IChatMemberServicio, ChatMemberServicio>();
+builder.Services.AddScoped<IHttpServicio, HttpServicio>();
 // HttpClient configurado con BaseAddress
 builder.Services.AddScoped(sp => new HttpClient
 {
