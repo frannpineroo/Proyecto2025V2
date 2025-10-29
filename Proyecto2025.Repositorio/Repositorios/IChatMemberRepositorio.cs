@@ -4,6 +4,7 @@ namespace Proyecto2025.Repositorio.Repositorios
 {
     public interface IChatMemberRepositorio<E> where E : class, IEntityBase
     {
+        Task<List<E>> GetEsAsync();
         Task<List<E>> SelectByChatId(long chatId);
         Task<long> Insert(E miembrochat);
         Task<bool> Update(int id, E miembrochat);

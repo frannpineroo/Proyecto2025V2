@@ -1,0 +1,83 @@
+﻿@page "/chatmiembro/crear"
+@inject IChatMemberServicio http
+@inject NavigationManager navHttp
+@inject HttpClient Http
+<h3>Crear Chat Miembro</h3>
+
+@* falta hacer la page editar de chatmiembros *@
+<EditForm Model="chatmember" OnValidSubmit="Grabar" FormName="CrearMiembroForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    @*  <div class="form-group">
+    <label>ChatId</label>
+        <div>
+        <InputNumber class="form-control" @bind-Value="chatmember.ChatId" />
+        <ValidationMessage For="@(() => chatmember.ChatId)" />
+        </div>
+    </div> *@
+
+    <div class="form-group">
+        <label>UserId</label>
+        <div>
+            <InputNumber class="form-control" @bind-Value="chatmember.UserId" />
+            <ValidationMessage For="@(() => chatmember.UserId)" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>IsModerator</label>
+        <div>
+            <InputCheckbox @bind-Value="chatmember.IsModerator" />
+            <ValidationMessage For="@(() => chatmember.IsModerator)" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>CanWrite</label>
+        <div>
+            <InputCheckbox @bind-Value="chatmember.CanWrite" />
+            <ValidationMessage For="@(() => chatmember.CanWrite)" />
+        </div>
+    </div>
+
+    @* <div class="form-group">
+        <label>Fecha de Creacion</label>
+        <div>
+        <InputDate class="form-control" @bind-Value="chatmember.JoinedAt" />
+        <ValidationMessage For="@(() => chatmember.JoinedAt)" /> 
+        </div>
+    </div> *@
+
+    <button class="btn btn-primary" type="submit">Aceptar</button>
+    <button class="btn btn-primary" @onclick="Cancelar">Cancelar</button>
+</EditForm>
+
+<br />
+<p>@Mensaje</p>
+
+@code {
+
+
+    private ChatMemberDTO chatmember = new ChatMemberDTO();
+    string Mensaje = "";
+
+    private async Task Grabar()
+    {
+        var respuesta = await http.Post<ChatMemberDTO, int>("api/chatmember/aceptar", chatmember);
+        if (!respuesta.Error)
+        {
+            navHttp.NavigateTo("/chatmiembro");
+        }
+        else
+        {
+            //var body = await respuesta.HttpResponseMessage.Content.ReadAsStringAsync();
+            Mensaje = respuesta.OptenerError();
+        }
+    }
+
+    private async Task Cancelar()
+    {
+        navHttp.NavigateTo("/chatmiembro");
+    }
+}

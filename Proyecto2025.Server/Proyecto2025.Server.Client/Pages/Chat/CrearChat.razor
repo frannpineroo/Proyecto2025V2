@@ -1,0 +1,92 @@
+﻿@page "/chat/crear"
+@inject IChatServicio http
+@inject NavigationManager navHttp
+@inject HttpClient Http
+<h3>Crear Chat</h3>
+
+
+<EditForm Model="chat" OnValidSubmit="Grabar" FormName="CrearChatForm">
+
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    @* <div class="form-group">
+        <label>Id</label>
+        <div>
+        <InputNumber class="form-control" @bind-Value="chat.Id" />
+        <ValidationMessage For="@(() => chat.Id)" />
+        </div>
+    </div> *@
+
+    <div class="form-group">
+        <label>Name</label>
+        <div>
+            <InputText class="form-control" @bind-Value="chat.Name" />
+            <ValidationMessage For="@(() => chat.Name)" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>IsGroup</label>
+        <div>
+            <InputCheckbox @bind-Value="chat.IsGroup" />
+            <ValidationMessage For="@(() => chat.IsGroup)" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>IsModerated</label>
+        <div>
+            <InputCheckbox @bind-Value="chat.IsModerated" />
+            <ValidationMessage For="@(() => chat.IsModerated)" />
+        </div>
+    </div>
+
+    @* <div class="form-group">
+        <label>CreatedAt</label>
+        <div>
+        <InputDate class="form-control" @bind-Value="chat.CreatedAt" />
+        <ValidationMessage For="@(() => chat.CreatedAt)" />
+        </div>
+    </div> *@
+
+    @* <div class="form-group">
+        <label>UpdatedAt</label>
+        <div>
+        <InputDate class="form-control" @bind-Value="chat.UpdatedAt" />
+        <ValidationMessage For="@(() => chat.UpdatedAt)" />
+        </div>
+    </div> *@
+
+    <button class="btn btn-primary" type="submit">Aceptar</button>
+    <button class="btn btn-primary" @onclick="Cancelar">Cancelar</button>
+</EditForm>
+
+<br />
+<p>@Mensaje</p>
+
+@code {
+
+
+    private ChatDTO chat = new ChatDTO();
+    string Mensaje = "";
+
+    private async Task Grabar()
+    {
+        var respuesta = await http.Post<ChatDTO, long>("api/chat", chat);
+        if (!respuesta.Error)
+        {
+            navHttp.NavigateTo("/chat");
+        }
+        else
+        {
+            //var body = await respuesta.HttpResponseMessage.Content.ReadAsStringAsync();
+            Mensaje = respuesta.OptenerError();
+        }
+    }
+
+    private async Task Cancelar()
+    {
+        navHttp.NavigateTo("/chat");
+    }
+}

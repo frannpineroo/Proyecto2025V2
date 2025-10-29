@@ -1,0 +1,92 @@
+﻿@page "/chatmiembro"
+
+@inject IChatMemberServicio Http
+
+<h3>Listar Chat Miembro</h3>
+<br />
+<a class="btn btn-primary" target="_blank" href="/chatmiembro/crear">Crear Nuevo miembro chat</a>
+<br />
+<table>
+    <tr>
+        <th>chatmember</th>
+    </tr>
+    @if (registro == null)
+    {
+        <p>  buscando .... </p>
+    }
+    else if (registro.Count == 0)
+    {
+        <p> no hay registros cargados</p>
+    }
+    else
+    {
+        @foreach (var reg in registro)
+        {
+            <tr>
+                <td>@reg.IsModerator</td>
+                <td>@reg.CanWrite</td>
+                <td>@reg.JoinedAt</td>
+                <td>
+                    <a class="btn btn-primary">
+                        @*  href="/chatmember/editar/{registro.Id}" *@
+                        Editar
+                    </a>
+                </td>
+                <td>
+                    <button class="btn btn-danger"
+                            @onclick="() => Borrar(reg)">
+                        Borrar
+                    </button>
+                </td>
+
+            </tr>
+        }
+    }
+
+</table>
+<br />
+<p>@mensaje</p>
+
+@code {
+    List<ListaChatMemberDTO>? registro;
+    string mensaje = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await LeerRegistros();
+    }
+
+    private async Task LeerRegistros()
+    {
+        // await Task.Delay(2000);
+        // registro = new List<RegistroUsuarioDTO>();
+        // await Task.Delay(2000);
+        // registro.Add(new RegistroUsuarioDTO { codigoingreso = 1, nombre = "Dante", apellido = "Gomez" });
+        // await Task.Delay(2000);
+        // registro.Add(new RegistroUsuarioDTO { codigoingreso = 1, nombre = "Vandal", apellido = "Abad" });
+
+        //registro = await Http.GetFromJsonAsync<List<RegistroUsuarioDTO>>("api/registrousuario/registro");
+        var respuesta = await Http.Get<List<ListaChatMemberDTO>>("api/chatmember/registro");
+        if (respuesta.Error)
+        {
+            registro = respuesta.Respuesta;
+        }
+        else
+        {
+            mensaje = respuesta.OptenerError();
+        }
+
+    }
+
+    private async Task Borrar(ListaChatMemberDTO reg)
+    {
+        var respuesta = await Http.Delete($"api/chatmember/{reg.Id}");
+        if (respuesta.Error)
+        {
+            mensaje = respuesta.OptenerError();
+        }
+        await LeerRegistros();
+    }
+
+}

@@ -23,6 +23,28 @@ namespace Proyecto2025.Server.Controllers
             this.context = context;
             this.repositorio = repositorio;
         }
+
+        [HttpGet]
+        public async Task<ActionResult<List<Chat>>> GetAll()
+        {
+            var chats = await repositorio.GetEsAsync();
+            if (chats == null)
+            {
+                return NotFound("No se encontraron chats, verifique de nuevo.");
+            }
+            //mapeo de entidades a DTOs
+            //var listaDTO = chats.Select(chat => new ListaChatsDTO
+            //{
+            //    Id = chat.Id,
+            //    Name = chat.Name,
+            //    IsGroup = chat.IsGroup,
+            //    IsModerated = chat.IsModerated,
+            //    CreatedAt = chat.CreatedAt,
+            //    UpdatedAt = chat.UpdatedAt,
+            //}).ToList();
+
+            return Ok(chats);
+        }
         #region
         [HttpGet("por-chat-lista/{id}")]//listachats
         public async Task<ActionResult<List<ListaChatDTO>>> GetChatslista(long id)
@@ -37,7 +59,7 @@ namespace Proyecto2025.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<long>> Post(ChatDTO DTO)
+        public async Task<ActionResult<long>> Post([FromBody]ChatDTO DTO)
         {
             try
             {

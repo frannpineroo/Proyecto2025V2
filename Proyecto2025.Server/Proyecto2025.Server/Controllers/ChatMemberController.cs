@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Proyecto2025.BD.Datos;
 using Proyecto2025.BD.Datos.Entity;
 using Proyecto2025.Repositorio.Repositorios;
+using Proyecto2025.Shared.DTO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -21,6 +22,33 @@ namespace Proyecto2025.Server.Controllers
         {
             this.context = context;
             this.chatMemberRepositorio = chatMemberRepositorio;
+        }
+        [HttpGet]
+        public async Task<ActionResult<List<ChatMember>>> GetAllChatMembers()
+        {
+            var members = await chatMemberRepositorio.GetEsAsync();
+
+            if (members == null)
+            {
+                return NotFound("No se encontraron chats, verifique de nuevo.");
+            }
+
+            //{
+            //    return Ok(new List<ListaChatMembersDTO>()); // Retorna una lista vacía si no hay miembros con un 200 OK
+            //}
+            //mapeo de entidades a DTOs
+            //var listaDTO = members.Select(member => new ListaChatMembersDTO
+            //{
+            //    Id = member.Id,
+            //    ChatId = member.ChatId,
+            //    UserId = member.UserId,
+            //    IsModerator = member.IsModerator,
+            //    CanWrite = member.CanWrite,
+            //    JoinedAt = member.JoinedAt
+            //}).ToList();
+
+            return Ok(members);
+
         }
         #region
         [HttpGet("por-id/{Id}")]
@@ -51,17 +79,29 @@ namespace Proyecto2025.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ChatMember>> GetChatMemberById(long id)
+        public async Task<ActionResult<ChatMember>> InsertMiembro([FromBody] ChatMemberDTO dto)
         {
-            var member = await context.ChatMembers.FindAsync(id);
-            //var member = await context.ChatMembers
-            //.Include(cm => cm.User) // Incluye la entidad User relacionada
-            //.FirstOrDefaultAsync(cm => cm.Id == id);
-            if (member == null)
+            // Verificar si el chat existe
+            var chatExiste = await context.Chats.AnyAsync(c => c.Id == dto.ChatId);
+            if (!chatExiste)
             {
-                return NotFound("Member not found.");
+                return BadRequest($"El chat con Id {dto.ChatId} no existe.");
             }
-            return Ok(member);
+
+            var entidad = new ChatMember
+            {
+                ChatId = dto.ChatId,
+                UserId = dto.UserId,
+                IsModerator = dto.IsModerator,
+                CanWrite = dto.CanWrite,
+                JoinedAt = DateTime.UtcNow
+            };
+
+            var id = await chatMemberRepositorio.Insert(entidad);
+            entidad.Id = (int)id;
+
+            return CreatedAtAction(nameof(InsertMiembro), new { id = entidad.Id }, entidad);
+            //return Ok(entidad);
         }
 
         [HttpPut("por-id/{Id}")]
