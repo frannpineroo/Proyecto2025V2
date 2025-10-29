@@ -1,0 +1,99 @@
+﻿@page "/Notifications"
+@using Proyecto2025.Shared.DTO
+@inject HttpClient Http
+@using System.Linq
+<h3>MIS NOTIFICACIONES PENDIENTES</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Mensaje</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (notifications == null)
+        {
+            <tr>
+                <td colspan="2"><p>Buscando...</p></td>
+            </tr>
+        }
+        else if (!notifications.Any())
+        {
+            <tr>
+                <td colspan="2"><p>No hay notificaciones sin ver </p></td>
+            </tr>
+        }
+        else
+        {
+
+            @foreach (var notification in notifications.Where(n => n.IsPending))
+            {
+                <tr>
+                    <td>**@notification.Message**</td>
+                    <td>
+
+                        <button class="btn btn-sm btn-secondary"
+                                @onclick="() => MarkAsRead(notification.Id)">
+                            Marcar como Leída
+                        </button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+
+    List<NotificationDTO>? notifications;
+
+
+    private readonly long userId = 1;
+    private const string ApiBaseUrl = "https://localhost:7016";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await VerNotificaciones();
+    }
+
+    private async Task VerNotificaciones()
+    {
+        try
+        {
+            string url = $"{ApiBaseUrl}/api/Notifications/user/{userId}/pending";
+            notifications = await Http.GetFromJsonAsync<List<NotificationDTO>>($"api/Notifications/user/{userId}/pending");
+
+        }
+        catch (Exception ex)
+        {
+
+            Console.WriteLine($"Error al cargar notificaciones: {ex.Message}");
+            notifications = new List<Proyecto2025.Shared.DTO.NotificationDTO>();
+        }
+    }
+
+    private async Task MarkAsRead(long notificationId)
+    {
+        string url = $"api/Notifications/{notificationId}/read";
+        var response = await Http.PutAsync(url, content: null);
+
+        if (response.IsSuccessStatusCode)
+        {
+
+            var notificationToUpdate = notifications?.FirstOrDefault(n => n.Id == notificationId);
+
+            if (notificationToUpdate != null)
+            {
+                notificationToUpdate.IsPending = false;
+            }
+
+            StateHasChanged();
+
+        }
+        else
+        {
+            Console.WriteLine($"Error {response.StatusCode}: No se pudo marcar como leída la notificación {notificationId}.");
+        }
+    }
+}
+
