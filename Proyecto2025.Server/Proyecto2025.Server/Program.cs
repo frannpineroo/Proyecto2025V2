@@ -5,8 +5,6 @@ using Proyecto2025.Repositorio.Repositorios;
 using Proyecto2025.Server.Components;
 using System;
 using System.Text.Json.Serialization;
-
-
 using Proyecto2025.Repositorio.Repositorios;
 using Proyecto2025.Server.Hubs;
 

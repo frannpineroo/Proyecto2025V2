@@ -40,7 +40,7 @@ namespace Proyecto2025.Servicio.ServiciosHttp
             }
             else
             {
-                return new HttpRespuesta<TResp>(default, true, response);
+                return new HttpRespuesta<TResp>(default, true, response); 
             }
 
         }
