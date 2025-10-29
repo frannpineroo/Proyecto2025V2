@@ -15,7 +15,7 @@ namespace Proyecto2025.Repositorio.Repositorios
             this.context = context;
         }
 
-        public async Task<Notification> CrearNotificacionAsync(NotificationDto dto)
+        public async Task<Notification> CrearNotificacionAsync(NotificationDTO dto)
         {
             var notificacion = new Notification
             {
@@ -31,12 +31,12 @@ namespace Proyecto2025.Repositorio.Repositorios
         }
 
    
-        public async Task<List<NotificationDto>> GetPendingByUserAsync(int userId)
+        public async Task<List<NotificationDTO>> GetPendingByUserAsync(int userId)
         {
             var notifications = await context.Notifications
                 .Where(n => n.UserId == userId && n.IsPending)
                 .OrderByDescending(n => n.CreatedAt)
-                .Select(n => new NotificationDto
+                .Select(n => new NotificationDTO
                 {
                     Id = n.Id,
                     Message = n.Message,

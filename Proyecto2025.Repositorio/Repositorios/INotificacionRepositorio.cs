@@ -5,8 +5,8 @@ using Proyecto2025.Shared.DTO;
 public interface INotificacionRepositorio
 {
   
-    Task<Notification> CrearNotificacionAsync(NotificationDto dto);
+    Task<Notification> CrearNotificacionAsync(NotificationDTO dto);
 
-    Task<List<NotificationDto>> GetPendingByUserAsync(int userId);
+    Task<List<NotificationDTO>> GetPendingByUserAsync(int userId);
     Task<bool> MarkAsReadAsync(long notificationId);
 }
