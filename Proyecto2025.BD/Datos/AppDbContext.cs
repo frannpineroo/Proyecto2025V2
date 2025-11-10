@@ -22,7 +22,6 @@ namespace Proyecto2025.BD.Datos
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            // Aquí puedes configurar tus entidades, relaciones, etc.
 
         }
     }

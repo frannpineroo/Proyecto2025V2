@@ -10,8 +10,7 @@ namespace Proyecto2025.BD.Datos
 {
     public interface IEntityBase
     {
-        //EstadoRegistro EstadoRegistro { get; set; }
         long Id { get; set; }
-        //long ChatId { get; set; }
+        
     }
 }

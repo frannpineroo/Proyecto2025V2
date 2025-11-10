@@ -12,8 +12,8 @@ using Proyecto2025.BD.Datos;
 namespace Proyecto2025.BD.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251020214717_deleteColumns")]
-    partial class deleteColumns
+    [Migration("20251110155246_Tablas1")]
+    partial class Tablas1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,14 +33,8 @@ namespace Proyecto2025.BD.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
 
                     b.Property<bool>("IsGroup")
                         .HasColumnType("bit");
@@ -75,9 +69,6 @@ namespace Proyecto2025.BD.Migrations
                     b.Property<long>("ChatId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsModerator")
                         .HasColumnType("bit");
 
@@ -111,9 +102,6 @@ namespace Proyecto2025.BD.Migrations
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
-
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
 
                     b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
@@ -150,14 +138,8 @@ namespace Proyecto2025.BD.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
 
                     b.Property<bool>("IsPending")
                         .HasColumnType("bit");
@@ -184,12 +166,6 @@ namespace Proyecto2025.BD.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(45)
@@ -208,9 +184,6 @@ namespace Proyecto2025.BD.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -218,9 +191,6 @@ namespace Proyecto2025.BD.Migrations
                         .IsRequired()
                         .HasMaxLength(80)
                         .HasColumnType("nvarchar(80)");
-
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("int");
 
                     b.Property<string>("FirstName")
                         .IsRequired()

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Proyecto2025.BD.Migrations
 {
     /// <inheritdoc />
-    public partial class Tablas : Migration
+    public partial class Tablas1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
