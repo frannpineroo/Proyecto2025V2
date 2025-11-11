@@ -1,0 +1,69 @@
+﻿<div class="chat-window">
+    <div class="chat-header">
+        <div class="header-info">
+            <div class="avatar large">LM</div>
+            <div>
+                <h4>Laura Martínez</h4>
+                <p class="status">En línea</p>
+            </div>
+        </div>
+        
+    </div>
+
+    <div class="chat-messages">
+        <VistaMensaje Sender="Laura Martínez" Text="Hola! ¿Cómo va el avance del proyecto?" Time="10:30" />
+        <VistaMensaje IsOwn="true" Text="¡Hola Laura! Estamos avanzando bien, ya terminamos la primera fase del diseño." Time="10:32" />
+        <VistaMensaje Sender="Laura Martínez" Text="¡Excelente! ¿Podrías compartirme los mockups cuando estén listos?" Time="10:35" />
+        <VistaMensaje IsOwn="true" Text="Claro, los tendremos listos para mañana. Te los envío apenas estén terminados." Time="10:38" />
+        <VistaMensaje Sender="Laura Martínez" Text="Perfecto, gracias! También necesitaríamos una reunión con el equipo para revisar los avances. ¿Te parece bien el jueves?" Time="10:40" />
+        <VistaMensaje IsOwn="true" Text="El jueves me parece bien. ¿A qué hora les conviene?" Time="10:42" />
+    </div>
+
+    <EscribirMensaje />
+</div>
+
+<style>
+ .chat-window {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+}
+.header-info {
+    display: flex;
+    align-items: center;
+}
+.avatar.large {
+    width: 45px;
+    height: 45px;
+    margin-right: 10px;
+}
+.status {
+    color: #2ecc71;
+    font-size: 12px;
+}
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: #fafafa;
+}
+.icon-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+</style>
+
+@code {
+
+}

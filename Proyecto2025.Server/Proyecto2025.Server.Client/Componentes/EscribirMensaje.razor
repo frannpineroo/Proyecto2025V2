@@ -1,0 +1,43 @@
+﻿<div class="message-input">
+    <input type="text" placeholder="Escribe un mensaje..." @bind="MessageText" />
+    <button @onclick="SendMessage">Enviar</button>
+</div>
+
+@code {
+    private string MessageText = "";
+
+    private void SendMessage()
+    {
+        if (!string.IsNullOrWhiteSpace(MessageText))
+        {
+            Console.WriteLine($"Mensaje enviado: {MessageText}");
+            MessageText = "";
+        }
+    }
+}
+
+<style>
+    .message-input {
+        display: flex;
+        padding: 10px;
+        border-top: 1px solid #ddd;
+        background: #fff;
+    }
+
+        .message-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        .message-input button {
+            background: #7a5af8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-left: 8px;
+            cursor: pointer;
+        }
+</style>

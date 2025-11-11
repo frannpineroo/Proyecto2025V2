@@ -1,0 +1,49 @@
+﻿@code {
+    [Parameter] public string? Sender { get; set; }
+    [Parameter] public string Text { get; set; } = string.Empty;
+    [Parameter] public string Time { get; set; } = string.Empty;
+    [Parameter] public bool IsOwn { get; set; }
+}
+
+<div class="message @(IsOwn ? "own" : "other")">
+    <div class="bubble">
+        <p>@Text</p>
+        <span class="time">@Time</span>
+    </div>
+</div>
+
+<style>
+    .message {
+        display: flex;
+        margin-bottom: 10px;
+    }
+
+        .message.own {
+            justify-content: flex-end;
+        }
+
+        .message.other {
+            justify-content: flex-start;
+        }
+
+    .bubble {
+        max-width: 70%;
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: #ececec;
+        position: relative;
+    }
+
+    .message.own .bubble {
+        background: #7a5af8;
+        color: white;
+    }
+
+    .time {
+        font-size: 10px;
+        color: #888;
+        display: block;
+        text-align: right;
+        margin-top: 4px;
+    }
+</style>

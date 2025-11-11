@@ -1,0 +1,310 @@
+﻿@page "/crearGrupo"
+
+<div class="crear-grupo-page">
+    <div class="crear-grupo-card">
+        <h2>Crear Grupo Privado</h2>
+
+        <!-- Nombre del grupo -->
+        <div class="form-group">
+            <label>Nombre del grupo</label>
+            <input type="text" placeholder="Ingresa el nombre del grupo" @bind="GroupName" />
+        </div>
+
+        <!-- Descripción -->
+        <div class="form-group">
+            <label>Descripción</label>
+            <textarea placeholder="Describe el propósito del grupo" @bind="Description"></textarea>
+        </div>
+
+        <!-- Modo moderado -->
+        <div class="form-group toggle-group">
+            <label>Modo Moderado</label>
+            <label class="switch">
+                <input type="checkbox" @bind="IsModerated" />
+                <span class="slider"></span>
+            </label>
+            <small>Activar para que los mensajes requieran aprobación</small>
+        </div>
+
+        <!-- Usuarios -->
+        <div class="form-group">
+            <label>Usuarios</label>
+            <input type="text" placeholder="Buscar usuarios..." @bind="SearchTerm" />
+            <div class="user-list">
+                @foreach (var user in FilteredUsers)
+                {
+                    <div class="user-item">
+                        <input type="checkbox" @bind="user.Selected" />
+                        <div class="avatar">@user.Initials</div>
+                        <div class="user-info">
+                            <div class="name">@user.Name</div>
+                            <div class="email">@user.Email</div>
+                        </div>
+                        <select @bind="user.Role">
+                            <option value="Usuario">Usuario</option>
+                            <option value="Moderador">Moderador</option>
+                            <option value="Administrador">Administrador</option>
+                        </select>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="actions">
+            <button class="btn-cancelar" @onclick="Cancelar">Cancelar</button>
+            <button class="btn-guardar" @onclick="GuardarGrupo">Guardar Grupo</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string GroupName = "";
+    private string Description = "";
+    private bool IsModerated = false;
+    private string SearchTerm = "";
+
+    private List<UserModel> Users = new()
+    {
+        new UserModel("Ana García", "ana.garcia@ejemplo.com"),
+        new UserModel("Carlos Rodríguez", "carlos.rodriguez@ejemplo.com"),
+        new UserModel("Elena Martínez", "elena.martinez@ejemplo.com"),
+        new UserModel("David López", "david.lopez@ejemplo.com"),
+        new UserModel("Sofía Pérez", "sofia.perez@ejemplo.com"),
+    };
+
+    private IEnumerable<UserModel> FilteredUsers =>
+        Users.Where(u => string.IsNullOrWhiteSpace(SearchTerm) ||
+                         u.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                         u.Email.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase));
+
+    private void GuardarGrupo()
+    {
+        var seleccionados = Users.Where(u => u.Selected).ToList();
+        Console.WriteLine($"Grupo '{GroupName}' creado con {seleccionados.Count} usuarios.");
+    }
+
+    private void Cancelar()
+    {
+        GroupName = "";
+        Description = "";
+        IsModerated = false;
+        SearchTerm = "";
+        foreach (var user in Users)
+            user.Selected = false;
+    }
+
+    public class UserModel
+    {
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public string Role { get; set; } = "Usuario";
+        public bool Selected { get; set; }
+        public string Initials => string.Join("", Name.Split(' ').Select(p => p[0])).ToUpper();
+
+        public UserModel(string name, string email)
+        {
+            Name = name;
+            Email = email;
+        }
+    }
+}
+
+<style>
+    .crear-grupo-page {
+        background-color: #1e2430;
+        color: #fff;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 40px;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .crear-grupo-card {
+        background: #2b3242;
+        padding: 30px;
+        border-radius: 12px;
+        width: 600px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    h2 {
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea,
+        .form-group select {
+            background: #3a4154;
+            border: none;
+            border-radius: 6px;
+            padding: 10px;
+            color: #fff;
+        }
+
+    textarea {
+        resize: none;
+        height: 80px;
+    }
+
+    /* Toggle Switch */
+    .toggle-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .toggle-group small {
+            color: #b0b0b0;
+            font-size: 12px;
+        }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 42px;
+        height: 22px;
+    }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #555;
+        border-radius: 22px;
+        transition: .3s;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: .3s;
+        }
+
+    input:checked + .slider {
+        background-color: #ffb74d;
+    }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+    /* Lista de usuarios */
+    .user-list {
+        max-height: 200px;
+        overflow-y: auto;
+        background: #2f374a;
+        border-radius: 6px;
+        padding: 8px;
+    }
+
+    .user-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #3a4154;
+        border-radius: 6px;
+        padding: 10px;
+        margin-bottom: 8px;
+    }
+
+        .user-item input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+    .avatar {
+        background: #505a73;
+        color: white;
+        font-weight: bold;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+    }
+
+    .user-info {
+        flex: 1;
+    }
+
+        .user-info .name {
+            font-weight: bold;
+        }
+
+        .user-info .email {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+    select {
+        background: #454e63;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 6px;
+    }
+
+    /* Botones */
+    .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .btn-cancelar {
+        background: #3a4154;
+        color: #fff;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .btn-guardar {
+        background: #ffb74d;
+        color: #1e2430;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+        .btn-guardar:hover {
+            background: #ffca6c;
+        }
+
+    .btn-cancelar:hover {
+        background: #505a73;
+    }
+</style>

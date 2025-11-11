@@ -1,0 +1,253 @@
+﻿@page "/registroUsuarioPrueba"
+
+<div class="registro-container">
+    <div class="registro-card">
+        <div class="registro-header">
+            <div>
+                <h2>Registro de Usuario</h2>
+            </div>
+        </div>
+
+        <EditForm Model="@usuario" OnValidSubmit="ConfirmarRegistro">
+            <DataAnnotationsValidator />
+
+            <!-- Nombre y Apellido -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" placeholder="Ingresa el nombre" @bind="usuario.Nombre" required />
+                </div>
+                <div class="form-group">
+                    <label>Apellido</label>
+                    <input type="text" placeholder="Ingresa el apellido" @bind="usuario.Apellido" required />
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" placeholder="ejemplo@organizacion.com" @bind="usuario.Email" required />
+            </div>
+
+            <!-- Contraseña -->
+            <div class="form-group">
+                <label>Contraseña</label>
+                <div class="password-wrapper">
+                    <input type="@PasswordFieldType" placeholder="Crea una contraseña segura"
+                           @bind="usuario.Contrasena" minlength="8" required />
+                    <button type="button" class="toggle-password" @onclick="TogglePassword">
+                        👁️
+                    </button>
+                </div>
+                <small>La contraseña debe tener al menos 8 caracteres</small>
+            </div>
+
+            <button type="submit" class="btn-registrar">Confirmar Registro ✅</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private UsuarioModel usuario = new();
+    private string PasswordFieldType = "password";
+
+    private void TogglePassword()
+    {
+        PasswordFieldType = PasswordFieldType == "password" ? "text" : "password";
+    }
+
+    private void ConfirmarRegistro()
+    {
+        Console.WriteLine($"Usuario registrado: {usuario.Nombre} {usuario.Apellido} - Rol: {usuario.Rol}");
+    }
+
+    public class UsuarioModel
+    {
+        public string Nombre { get; set; } = "";
+        public string Apellido { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Contrasena { get; set; } = "";
+        public string Organizacion { get; set; } = "";
+        public string Rol { get; set; } = "Usuario común";
+    }
+
+    private List<RolModel> Roles = new()
+    {
+        new RolModel("Usuario común", "🧑‍💼", "Acceso básico"),
+        new RolModel("Moderador", "🛠️", "Gestión media"),
+        new RolModel("Admin Grupo", "🧩", "Control total")
+    };
+
+    public class RolModel
+    {
+        public string Nombre { get; set; }
+        public string Icono { get; set; }
+        public string Descripcion { get; set; }
+        public RolModel(string nombre, string icono, string descripcion)
+        {
+            Nombre = nombre; Icono = icono; Descripcion = descripcion;
+        }
+    }
+}
+
+<style>
+    .registro-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+        background: transparent;
+    }
+
+    .registro-card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        width: 600px;
+    }
+
+    .registro-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 25px;
+    }
+
+        .registro-header h2 {
+            margin: 0;
+            font-weight: 700;
+            color: #1b1b1b;
+        }
+
+        .registro-header p {
+            color: #555;
+            margin-top: 4px;
+        }
+
+    .solo-admin {
+        background: #2e5bff;
+        color: #fff;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+    }
+
+    /* Campos */
+    .form-row {
+        display: flex;
+        gap: 15px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 18px;
+        flex: 1;
+    }
+
+        .form-group label {
+            font-weight: 600;
+            color: #1b1b1b;
+            margin-bottom: 6px;
+        }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    textarea {
+        border: 1px solid #d4d7e0;
+        border-radius: 8px;
+        padding: 10px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    input:focus {
+        border-color: #2e5bff;
+    }
+
+    /* Contraseña */
+    .password-wrapper {
+        position: relative;
+        display: flex;
+    }
+
+        .password-wrapper input {
+            width: 100%;
+            padding-right: 35px;
+        }
+
+    .toggle-password {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    /* Roles */
+    .roles {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .rol-card {
+        border: 1px solid #d4d7e0;
+        border-radius: 10px;
+        padding: 14px;
+        width: 180px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .rol-card:hover {
+            border-color: #2e5bff;
+        }
+
+        .rol-card.selected {
+            border-color: #2e5bff;
+            background-color: #e8edff;
+        }
+
+    .rol-icon {
+        font-size: 24px;
+    }
+
+    .rol-info strong {
+        color: #1b1b1b;
+    }
+
+    .rol-info p {
+        color: #666;
+        font-size: 12px;
+        margin: 0;
+    }
+
+    /* Botón */
+    .btn-registrar {
+        width: 100%;
+        background: linear-gradient(to right, #2e5bff, #0d39d0);
+        color: white;
+        font-weight: bold;
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 15px;
+        transition: background 0.3s;
+    }
+
+        .btn-registrar:hover {
+            background: linear-gradient(to right, #1d4be3, #0a2ea8);
+        }
+</style>
