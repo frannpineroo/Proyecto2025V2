@@ -1,20 +1,24 @@
-﻿<div class="message-input">
+﻿@namespace Proyecto2025.Server.Client.Componentes
+<div class="message-input">
     <input type="text" placeholder="Escribe un mensaje..." @bind="MessageText" />
-    <button @onclick="SendMessage">Enviar</button>
+    <button @onclick="Enviar">Enviar</button>
 </div>
 
 @code {
     private string MessageText = "";
 
-    private void SendMessage()
+    [Parameter] public EventCallback<string> OnSend { get; set; }
+
+    private async Task Enviar()
     {
         if (!string.IsNullOrWhiteSpace(MessageText))
         {
-            Console.WriteLine($"Mensaje enviado: {MessageText}");
+            await OnSend.InvokeAsync(MessageText);
             MessageText = "";
         }
     }
 }
+
 
 <style>
     .message-input {

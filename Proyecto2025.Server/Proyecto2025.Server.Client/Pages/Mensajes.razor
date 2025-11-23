@@ -2,6 +2,8 @@
 @using Proyecto2025.Servicio.ServiciosHttp
 @using Proyecto2025.Shared.DTO
 @using Microsoft.AspNetCore.SignalR.Client
+@using Proyecto2025.Server.Client.Componentes;
+
 
 @inject IHttpServicio http
 @inject NavigationManager navHttp
@@ -20,19 +22,22 @@
         }
         else
         {
-            @foreach (var mensaje in mensajes)
-            {
-                <div class="message">
-                    <b>@mensaje.SenderName:</b> @mensaje.Content
-                </div>
+            @* dentro del foreach *@
+@foreach (var mensaje in mensajes)
+{
+    <VistaMensaje
+        Sender="@mensaje.SenderName"
+        Text="@mensaje.Content"
+        Time="@mensaje.SentAt.ToLocalTime().ToShortTimeString()"
+        IsOwn="@(mensaje.SenderId == 3)"
+        MessageId="@mensaje.Id"
+                              />
             }
         }
     </div>
 
     <div class="input-area">
-        <input @bind="nuevoMensaje.Content" @bind:event="oninput"
-               placeholder="Escribe un mensaje..." class="form-control" />
-        <button class="btn btn-primary" @onclick="EnviarMensaje">Enviar</button>
+       <EscribirMensaje OnSend="EnviarMensajeDesdeComponente"/>
     </div>
 </div>
 
@@ -46,6 +51,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+
         await LeerMensajes();
         // Si el servidor y cliente comparten origen:
         var hubUrl = navHttp.ToAbsoluteUri("/messagehub");
@@ -106,8 +112,13 @@
         nuevoMensaje.Content = string.Empty;
         Mensaje = string.Empty;
    }
+    private async Task EnviarMensajeDesdeComponente(string texto)
+    {
+        nuevoMensaje.Content = texto;
+        await EnviarMensaje();
     }
     }
+    
 
     
          
