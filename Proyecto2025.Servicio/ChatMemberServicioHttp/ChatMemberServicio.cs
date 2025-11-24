@@ -28,7 +28,25 @@ namespace Proyecto2025.Servicio.ChatMemberServicioHttp
             }
 
         }
-        //falta implementar el put
+        //se implemento el put correctamente
+
+        public async Task<ChatMemberRespuesta<Tresp>> Put<T, Tresp>(string url, T enviar)
+        {
+            var JsonAEnviar = JsonSerializer.Serialize(enviar);
+            var contenido = new StringContent(JsonAEnviar,
+                                              System.Text.Encoding.UTF8,
+                                              "application/json");
+            var response = await http.PutAsync(url, contenido);
+            if (response.IsSuccessStatusCode)
+            {
+                var respuesta = await DesSerializar<Tresp>(response);
+                return new ChatMemberRespuesta<Tresp>(respuesta, false, response);
+            }
+            else
+            {
+                return new ChatMemberRespuesta<Tresp>(default, true, response);
+            }
+        }
 
         public async Task<ChatMemberRespuesta<Tresp>> Post<T, Tresp>(string url, T enviar)
         {

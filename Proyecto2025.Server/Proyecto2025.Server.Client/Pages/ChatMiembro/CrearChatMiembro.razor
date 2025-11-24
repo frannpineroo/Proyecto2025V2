@@ -76,6 +76,20 @@
         }
     }
 
+    private async Task Editar()
+    {
+        var respuesta = await http.Put<ChatMemberDTO, int>("api/ChatMember", chatmember);
+        if (!respuesta.Error)
+        {
+            navHttp.NavigateTo("/chatmiembro");
+        }
+        else
+        {
+            //var body = await respuesta.HttpResponseMessage.Content.ReadAsStringAsync();
+            Mensaje = respuesta.OptenerError();
+        }
+    }
+
     private async Task Cancelar()
     {
         navHttp.NavigateTo("/chatmiembro");
