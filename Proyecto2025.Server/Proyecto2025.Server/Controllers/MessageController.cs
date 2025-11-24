@@ -7,66 +7,90 @@ using Proyecto2025.Shared.DTO;
 using Proyecto2025.Shared.ENUM;
 using Microsoft.AspNetCore.SignalR;
 using Proyecto2025.Server.Hubs;
-
-
+using System;
 
 namespace Proyecto2025.Server.Controllers
 {
     [ApiController]
     [Route("api/message")]
-    
     public class MessageController : ControllerBase
     {
         private readonly AppDbContext context;
         private readonly IHubContext<MessageHub> _hubContext;
         private readonly IMensajeRepositorio mensajeRepository;
-        //private readonly IMapper mapper;
-        public MessageController(AppDbContext context, IHubContext<MessageHub> hubContext, IMensajeRepositorio mensajeRepositorio)
+
+        public MessageController(AppDbContext context, IHubContext<MessageHub> hubContext, IMensajeRepositorio mensajeRepository)
         {
             this.context = context;
             _hubContext = hubContext;
+            this.mensajeRepository = mensajeRepository;
         }
+
+        // Devolver DTOs, no entidades EF directamente
         [HttpGet]
-        public async Task<ActionResult<List<Message>>> GetAll()
+        public async Task<ActionResult<List<VerMensajesDTO>>> GetAll()
         {
             var messages = await context.Messages
                 .Include(m => m.Chat)
                 .Include(m => m.Sender)
                 .OrderBy(m => m.SentAt)
+                .Select(m => new VerMensajesDTO
+                {
+                    Id = (int)m.Id,
+                    ChatId = (int)m.ChatId,
+                    ChatName = m.Chat != null ? m.Chat.Name ?? string.Empty : string.Empty,
+                    SenderId = (int)m.SenderId,
+                    SenderName = m.Sender != null ? m.Sender.FirstName + " " + m.Sender.LastName : string.Empty,
+                    Content = m.Content,
+                    MessageType = (int)m.MessageType,
+                    MediaFile = m.MediaFile != null ? Convert.ToBase64String(m.MediaFile) : null,
+                    SentAt = m.SentAt,
+                    IsRead = m.IsRead
+                })
                 .ToListAsync();
+
             return Ok(messages);
         }
-      
 
         [HttpGet("{Id:int}")]
-        public async Task<ActionResult<Message>> GetByid(int Id)
+        public async Task<ActionResult<VerMensajesDTO>> GetByid(int Id)
         {
-            var messaje = await context.Messages.FirstOrDefaultAsync(x => x.Id == Id);
-            if (messaje is null)
+            var m = await context.Messages
+                .Include(x => x.Chat)
+                .Include(x => x.Sender)
+                .FirstOrDefaultAsync(x => x.Id == Id);
+
+            if (m is null) return NotFound($"No existe el Mensaje con id {Id}");
+
+            var dto = new VerMensajesDTO
             {
-                return NotFound($"No existe el Mensaje con id {Id}");
-            }
-            return Ok(messaje);
+                Id = (int)m.Id,
+                ChatId = (int)m.ChatId,
+                ChatName = m.Chat?.Name ?? string.Empty,
+                SenderId = (int)m.SenderId,
+                SenderName = m.Sender != null ? $"{m.Sender.FirstName} {m.Sender.LastName}" : string.Empty,
+                Content = m.Content,
+                MessageType = (int)m.MessageType,
+                MediaFile = m.MediaFile != null ? Convert.ToBase64String(m.MediaFile) : null,
+                SentAt = m.SentAt,
+                IsRead = m.IsRead
+            };
+
+            return Ok(dto);
         }
 
         [HttpPost]
         public async Task<ActionResult<int>> Post([FromBody] CrearMensajeDTO dto)
         {
-            if (dto == null)
-                return BadRequest("El mensaje recibido está vacío.");
+            if (dto == null) return BadRequest("El mensaje recibido está vacío.");
+            if (string.IsNullOrWhiteSpace(dto.Content)) return BadRequest("El mensaje no puede estar vacío.");
 
-            if (string.IsNullOrWhiteSpace(dto.Content))
-                return BadRequest("El mensaje no puede estar vacío.");
-
-            // Verificar que el Chat exista
             var chatExiste = await context.Chats.AnyAsync(c => c.Id == dto.ChatId);
-            if (!chatExiste)
-                return BadRequest($"No existe un chat con Id = {dto.ChatId}");
+            if (!chatExiste) return BadRequest($"No existe un chat con Id = {dto.ChatId}");
 
-            // Convertir el string del DTO al enum
             if (!Enum.TryParse<MessageType>(dto.MessageType, true, out var tipoMensaje))
             {
-                tipoMensaje = MessageType.text; // valor por defecto
+                tipoMensaje = MessageType.text;
             }
 
             var nuevo = new Message
@@ -82,42 +106,40 @@ namespace Proyecto2025.Server.Controllers
             context.Messages.Add(nuevo);
             await context.SaveChangesAsync();
 
-            //construccion de de payload que el cliente entienda 
-            var payload = new
+            // recuperar con relaciones para construir el DTO con SenderName
+            var saved = await context.Messages
+                .Include(m => m.Chat)
+                .Include(m => m.Sender)
+                .FirstOrDefaultAsync(m => m.Id == nuevo.Id);
+
+            var verDto = new VerMensajesDTO
             {
-                ChatId = dto.ChatId,
-                SenderId = dto.SenderId,
-                Content = dto.Content,
-                MediaFile = dto.MediaFile,
-                MessageType = tipoMensaje,
-                SentAt = dto.SentAt
+                Id = (int)saved!.Id,
+                ChatId = (int)saved.ChatId,
+                ChatName = saved.Chat?.Name ?? string.Empty,
+                SenderId = (int)saved.SenderId,
+                SenderName = saved.Sender != null ? $"{saved.Sender.FirstName} {saved.Sender.LastName}" : string.Empty,
+                Content = saved.Content,
+                MessageType = (int)saved.MessageType,
+                MediaFile = saved.MediaFile != null ? Convert.ToBase64String(saved.MediaFile) : null,
+                SentAt = saved.SentAt,
+                IsRead = saved.IsRead
             };
 
-            //enviar el mensaje a un grupo
-            await _hubContext.Clients.Group($"chat-{dto.ChatId}").SendAsync("ReceiveMessage", payload);
+            await _hubContext.Clients.Group($"chat-{dto.ChatId}").SendAsync("ReceiveMessage", verDto);
             return Ok(nuevo.Id);
         }
 
-
-
-
-
-
-
         [HttpPut("ocultar")]
-        public async Task<ActionResult<int>> Put(Proyecto2025.Shared.DTO.OcultarMensajeDTO DTO)
+        public async Task<ActionResult<string>> Put(Proyecto2025.Shared.DTO.OcultarMensajeDTO DTO)
         {
             var mensaje = await context.Messages.FirstOrDefaultAsync(x => x.Id == DTO.MensajeId);
-            if (mensaje == null)
-            {
-                return NotFound($"No existe el Mensaje con id {DTO.MensajeId}");
-            }
-             mensaje.IsArchived = true;
-             context.Messages.Update(mensaje);
-             await context.SaveChangesAsync();
-             return Ok(($"Mensaje ocultado correctamente"));
+            if (mensaje == null) return NotFound($"No existe el Mensaje con id {DTO.MensajeId}");
+
+            mensaje.IsArchived = true;
+            context.Messages.Update(mensaje);
+            await context.SaveChangesAsync();
+            return Ok("Mensaje ocultado correctamente");
         }
-
-
     }
 }
