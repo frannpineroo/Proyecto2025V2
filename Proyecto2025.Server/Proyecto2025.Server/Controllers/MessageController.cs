@@ -8,6 +8,8 @@ using Proyecto2025.Shared.ENUM;
 using Microsoft.AspNetCore.SignalR;
 using Proyecto2025.Server.Hubs;
 using System;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Proyecto2025.Server.Controllers
 {
@@ -30,9 +32,19 @@ namespace Proyecto2025.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<List<VerMensajesDTO>>> GetAll()
         {
+            // Obtener Id del usuario actual desde las claims. Si no está autenticado se considera 0.
+            long currentRoleId = 0;
+            if (User?.Identity?.IsAuthenticated == true)
+            {
+                var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("id")?.Value;
+                long.TryParse(idClaim, out currentRoleId);
+            }
+
             var messages = await context.Messages
                 .Include(m => m.Chat)
                 .Include(m => m.Sender)
+                // Si el mensaje está archivado, solo mostrarlo si el usuario tiene RoleId == 1
+                .Where(m => !m.IsArchived || currentRoleId == 1)
                 .OrderBy(m => m.SentAt)
                 .Select(m => new VerMensajesDTO
                 {
@@ -45,7 +57,8 @@ namespace Proyecto2025.Server.Controllers
                     MessageType = (int)m.MessageType,
                     MediaFile = m.MediaFile != null ? Convert.ToBase64String(m.MediaFile) : null,
                     SentAt = m.SentAt,
-                    IsRead = m.IsRead
+                    IsRead = m.IsRead,
+                    IsArchived = m.IsArchived
                 })
                 .ToListAsync();
 
@@ -55,12 +68,22 @@ namespace Proyecto2025.Server.Controllers
         [HttpGet("{Id:int}")]
         public async Task<ActionResult<VerMensajesDTO>> GetByid(int Id)
         {
+            long currentUserId = 0;
+            if (User?.Identity?.IsAuthenticated == true)
+            {
+                var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("id")?.Value;
+                long.TryParse(idClaim, out currentUserId);
+            }
+
             var m = await context.Messages
                 .Include(x => x.Chat)
                 .Include(x => x.Sender)
                 .FirstOrDefaultAsync(x => x.Id == Id);
 
             if (m is null) return NotFound($"No existe el Mensaje con id {Id}");
+
+            // Si el mensaje está archivado y el usuario no es el admin (Id 1), no exponerlo
+            if (m.IsArchived && currentUserId != 1) return NotFound($"No existe el Mensaje con id {Id}");
 
             var dto = new VerMensajesDTO
             {
@@ -73,7 +96,8 @@ namespace Proyecto2025.Server.Controllers
                 MessageType = (int)m.MessageType,
                 MediaFile = m.MediaFile != null ? Convert.ToBase64String(m.MediaFile) : null,
                 SentAt = m.SentAt,
-                IsRead = m.IsRead
+                IsRead = m.IsRead,
+                IsArchived = m.IsArchived
             };
 
             return Ok(dto);
@@ -123,7 +147,8 @@ namespace Proyecto2025.Server.Controllers
                 MessageType = (int)saved.MessageType,
                 MediaFile = saved.MediaFile != null ? Convert.ToBase64String(saved.MediaFile) : null,
                 SentAt = saved.SentAt,
-                IsRead = saved.IsRead
+                IsRead = saved.IsRead,
+                IsArchived = saved.IsArchived
             };
 
             await _hubContext.Clients.Group($"chat-{dto.ChatId}").SendAsync("ReceiveMessage", verDto);
