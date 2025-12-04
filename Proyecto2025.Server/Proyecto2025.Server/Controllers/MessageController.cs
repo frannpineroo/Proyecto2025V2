@@ -159,12 +159,12 @@ namespace Proyecto2025.Server.Controllers
         public async Task<ActionResult<string>> Put(Proyecto2025.Shared.DTO.OcultarMensajeDTO DTO)
         {
             var mensaje = await context.Messages.FirstOrDefaultAsync(x => x.Id == DTO.MensajeId);
-            if (mensaje == null) return NotFound($"No existe el Mensaje con id {DTO.MensajeId}");
+            if (mensaje == null) return Ok("Mensaje inexistente o oculto");
 
             mensaje.IsArchived = true;
             context.Messages.Update(mensaje);
             await context.SaveChangesAsync();
-            return Ok("Mensaje ocultado correctamente");
+            return Ok(new { mensaje = "Mensaje ocultado" });
         }
     }
 }

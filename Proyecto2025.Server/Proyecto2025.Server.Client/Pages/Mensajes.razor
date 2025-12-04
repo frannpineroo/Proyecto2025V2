@@ -4,14 +4,24 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @using Proyecto2025.Server.Client.Componentes
 
-
-
 @inject IHttpServicio http
 @inject NavigationManager navHttp
 
 <h3>💬 Chat</h3>
 
-<div class="chat-container">
+<div class="chat-controls">
+    <button class="erase-toggle" title="Ocultar mensajes" @onclick="ToggleSelectionMode">🧽</button>
+
+    @if (selectionMode)
+    {
+        <div class="selection-actions">
+            <button class="confirm-hide" @onclick="ConfirmHideSelected" disabled="@(!HasSelected)">Confirmar ocultar (@selectedIds.Count)</button>
+            <button class="cancel-hide" @onclick="CancelSelection">Cancelar</button>
+        </div>
+    }
+</div>
+
+     <div class="chat-container">
     <div class="messages-box">
         @if (mensajes == null)
         {
@@ -23,16 +33,17 @@
         }
         else
         {
-            @* dentro del foreach *@
-@foreach (var mensaje in mensajes)
-{
-    <VistaMensaje
-        Sender="@mensaje.SenderName"
-        Text="@mensaje.Content"
-        Time="@mensaje.SentAt.ToLocalTime().ToShortTimeString()"
-        IsOwn="@(mensaje.SenderId == 3)"
-        MessageId="@mensaje.Id"
-                              />
+            @foreach (var mensaje in mensajes)
+            {
+                <VistaMensaje
+                    Sender="@mensaje.SenderName"
+                    Text="@mensaje.Content"
+                    Time="@mensaje.SentAt.ToLocalTime().ToShortTimeString()"
+                    IsOwn="@(mensaje.SenderId == 3)"
+                    MessageId="@mensaje.Id"
+                    ShowCheckbox="@selectionMode"
+                    IsSelected="@selectedIds.Contains(mensaje.Id)"
+                    OnToggleSelected="ToggleSelected" />
             }
         }
     </div>
@@ -49,21 +60,20 @@
     string Mensaje = "";
     private readonly int chatId = 2; // ID del chat actual (debería cambiar segun el chat en la version final)
 
+    // Selección para ocultar
+    private bool selectionMode = false;
+    private HashSet<int> selectedIds = new();
 
     protected override async Task OnInitializedAsync()
     {
-
         await LeerMensajes();
-        // Si el servidor y cliente comparten origen:
-        var hubUrl = navHttp.ToAbsoluteUri("/messagehub");
-        // Si el servidor está en otro puerto, usa new Uri("https://localhost:7016/messagehub")
 
+        var hubUrl = navHttp.ToAbsoluteUri("/messagehub");
         hubConnection = new HubConnectionBuilder()
             .WithUrl(hubUrl)
             .WithAutomaticReconnect()
             .Build();
 
-        // Suscribirse al evento. Asegúrate que el servidor envía un objeto compatible con VerMensajesDTO
         hubConnection.On<VerMensajesDTO>("ReceiveMessage", (msg) =>
         {
             mensajes.Add(msg);
@@ -71,61 +81,135 @@
         });
 
         await hubConnection.StartAsync();
-
-        // Unirse al grupo del chat para recibir solo mensajes de ese chat
         await hubConnection.SendAsync("JoinGroup", $"chat-{chatId}");
     }
 
     private async Task LeerMensajes()
-
     {
         var resp = await http.Get<List<VerMensajesDTO>>("api/message");
         if(!resp.Error)
         {
             mensajes = resp.Respuesta;
         }
-
     }
 
     private async Task EnviarMensaje()
     {
-        //validacion basica
-
         if (nuevoMensaje == null || string.IsNullOrWhiteSpace(nuevoMensaje.Content))
         {
             Mensaje = "Escribe un mensaje antes de enviar.";
             return;
         }
-        //asignar las propiedades necesarias al DTO antes de enviarlo
 
-        nuevoMensaje.ChatId = 2; //esto deberia ser el id del chat actual
-        nuevoMensaje.SenderId = 3; //esto deberia ser el id del usuario logueado
-        nuevoMensaje.MessageType = "text"; //tipo de mensaje
-        nuevoMensaje.SentAt = DateTime.UtcNow; //fecha y hora actual en UTC
+        nuevoMensaje.ChatId = 2;
+        nuevoMensaje.SenderId = 3;
+        nuevoMensaje.MessageType = "text";
+        nuevoMensaje.SentAt = DateTime.UtcNow;
 
-        //enviar el mensaje 400 si el DTO exige Mediafile, enviar array vacio si no hay archivo
         var httpResp = await http.Post<CrearMensajeDTO, long>("api/message", nuevoMensaje);
 
-        //actualizar la lista de mensajes despues de enviar
         await LeerMensajes();
 
-        //limpiar textbox
         nuevoMensaje.Content = string.Empty;
         Mensaje = string.Empty;
    }
+
     private async Task EnviarMensajeDesdeComponente(string texto)
     {
         nuevoMensaje.Content = texto;
         await EnviarMensaje();
     }
+
+    // ---- selección ----
+    private void ToggleSelectionMode()
+    {
+        selectionMode = !selectionMode;
+        if (!selectionMode)
+        {
+            selectedIds.Clear();
+        }
+    }
+
+    private void ToggleSelected(int messageId)
+    {
+        if (selectedIds.Contains(messageId))
+            selectedIds.Remove(messageId);
+        else
+            selectedIds.Add(messageId);
+    }
+
+    private bool HasSelected => selectedIds.Count > 0;
+
+    private void CancelSelection()
+    {
+        selectionMode = false;
+        selectedIds.Clear();
+    }
+
+    private async Task ConfirmHideSelected()
+    {
+        if (!HasSelected) return;
+
+        var toHide = selectedIds.ToList();
+        var idsParaEliminarLocal = new List<int>(); // <- aquí marcamos qué borrar
+
+        foreach (var id in toHide)
+        {
+            var dto = new OcultarMensajeDTO { MensajeId = id };
+            var resp = await http.Put<object, OcultarMensajeDTO>("api/message/ocultar", dto);
+           // var resp = await http.Put<string, OcultarMensajeDTO>("api/message/ocultar", dto);
+
+            if (!resp.Error)
+            {
+                idsParaEliminarLocal.Add(id); // <- solo marcamos
+            }
+            else
+            {
+                Console.WriteLine($"Error ocultando mensaje");
+            }
+        }
+
+        // ❗ Ahora SÍ, ya fuera del foreach y sin awaits en medio
+        mensajes.RemoveAll(m => idsParaEliminarLocal.Contains(m.Id));
+
+        selectedIds.Clear();
+        selectionMode = false;
+
+        StateHasChanged();
     }
     
-
-    
-         
-    
-    
-       
-       
-       
-    
+  
+}
+<style>
+    .chat-controls {
+        display:flex;
+        align-items:center;
+        gap:10px;
+        margin-bottom:8px;
+    }
+    .erase-toggle {
+        background: transparent;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+    }
+    .selection-actions {
+        display:flex;
+        gap:8px;
+    }
+    .confirm-hide {
+        background:#ff6b6b;
+        color:white;
+        border:none;
+        padding:6px 10px;
+        border-radius:6px;
+        cursor:pointer;
+    }
+    .cancel-hide {
+        background:transparent;
+        border:1px solid #ccc;
+        padding:6px 10px;
+        border-radius:6px;
+        cursor:pointer;
+    }
+</style>

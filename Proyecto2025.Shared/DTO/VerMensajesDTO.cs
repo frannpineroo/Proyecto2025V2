@@ -16,8 +16,6 @@ namespace Proyecto2025.Shared.DTO
         public string? MediaFile { get; set; }
         public DateTime SentAt { get; set; }
         public bool IsRead { get; set; }
-
-        // nuevo: estado de archivado / ocultado
         public bool IsArchived { get; set; }
     }
 }

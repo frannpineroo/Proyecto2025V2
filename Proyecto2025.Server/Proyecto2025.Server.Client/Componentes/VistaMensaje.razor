@@ -6,10 +6,21 @@
     [Parameter] public string Time { get; set; } = string.Empty;
     [Parameter] public bool IsOwn { get; set; }
     [Parameter] public int MessageId { get; set; }
+
+    // Nuevos parámetros para selección
+    [Parameter] public bool ShowCheckbox { get; set; }
+    [Parameter] public bool IsSelected { get; set; }
+    [Parameter] public EventCallback<int> OnToggleSelected { get; set; }
 }
 
 <div class="message @(IsOwn ? "own" : "other")">
     <div class="bubble">
+        @if (ShowCheckbox)
+        {
+            <label class="select-checkbox">
+                <input type="checkbox" checked="@IsSelected" @onchange="() => OnToggleSelected.InvokeAsync(MessageId)" />
+            </label>
+        }
 
         @if (!string.IsNullOrEmpty(Sender))
         {
@@ -41,6 +52,8 @@
         border-radius: 10px;
         background: #ececec;
         position: relative;
+        display: flex;
+        flex-direction: column;
     }
 
     .message.own .bubble {
@@ -68,24 +81,17 @@
         margin-top: 4px;
     }
 
-    .hide-btn {
-        margin-left: 8px;
-        font-size: 11px;
-        padding: 4px 8px;
-        border: none;
-        background: #ff6b6b;
-        color: white;
-        border-radius: 4px;
-        cursor: pointer;
+    /* Checkbox estilo */
+    .select-checkbox {
+        position: absolute;
+        left: -28px;
+        top: 8px;
+        display: inline-block;
     }
 
-    .archived-tag {
-        display: inline-block;
-        margin-top: 6px;
-        padding: 2px 6px;
-        font-size: 11px;
-        background: #333;
-        color: white;
-        border-radius: 4px;
+    .select-checkbox input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
     }
 </style>

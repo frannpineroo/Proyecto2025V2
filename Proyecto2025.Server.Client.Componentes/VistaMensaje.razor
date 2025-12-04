@@ -1,0 +1,33 @@
+@namespace Proyecto2025.Server.Client.Componentes
+
+@code {
+    [Parameter] public string? Sender { get; set; }
+    [Parameter] public string Text { get; set; } = string.Empty;
+    [Parameter] public string Time { get; set; } = string.Empty;
+    [Parameter] public bool IsOwn { get; set; }
+    [Parameter] public int MessageId { get; set; }
+
+    // Parámetros para selección múltiple
+    [Parameter] public bool ShowCheckbox { get; set; }
+    [Parameter] public bool IsSelected { get; set; }
+    [Parameter] public EventCallback<int> OnToggleSelected { get; set; }
+}
+
+<div class="message @(IsOwn ? "own" : "other")">
+    <div class="bubble" style="position:relative;">
+        @if (ShowCheckbox)
+        {
+            <label class="select-checkbox" style="position:absolute; left:-28px; top:8px;">
+                <input type="checkbox" checked="@IsSelected" @onchange="() => OnToggleSelected.InvokeAsync(MessageId)" />
+            </label>
+        }
+
+        @if (!string.IsNullOrEmpty(Sender))
+        {
+            <span class="sender">@Sender</span>
+        }
+
+        <p>@Text</p>
+        <span class="time">@Time</span>
+    </div>
+</div>
