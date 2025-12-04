@@ -58,6 +58,24 @@ namespace Proyecto2025.Server.Controllers
             }
         }
 
+        [HttpGet("buscar/{filtro}")]
+        public async Task<ActionResult<List<ListaUsuarioDTO>>> GetUsers(string filtro)
+        {
+            try
+            {
+                var users = await usuarioRepositorio.SelectUsuarios(filtro);
+                if (users == null || users.Count == 0)
+                {
+                    return NotFound("No se encontraron los usuarios cargados.");
+                }
+                return Ok(users);
+            }
+            catch (Exception e)
+            {
+                return BadRequest($"Error al obtener los usuarios: {e.Message}");
+            }
+        }
+
         [HttpPost]
         [ProducesResponseType(typeof(long), 200)]
         [ProducesResponseType(400)]
@@ -111,6 +129,48 @@ namespace Proyecto2025.Server.Controllers
             }
         }
 
+        [HttpPut("{id:long}/Desactivar")]
+        public async Task<ActionResult> DesactivarUsuario(long id)
+        {
+            try
+            {
+                
+                var actualizado = await usuarioRepositorio.DesactivarUsuarios(id);
+
+                if (!actualizado)
+                {
+                    return NotFound($"Usuario con ID {id} no encontrado.");
+                }
+
+                return Ok("Usuario actualizado correctamente.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error al actualizar usuario: {ex.Message}");
+            }
+        }
+
+        [HttpPut("{id:long}/Activar")]
+        public async Task<ActionResult> ActivarUsuario(long id)
+        {
+            try
+            {
+
+                var actualizado = await usuarioRepositorio.ActivarUsuarios(id);
+
+                if (!actualizado)
+                {
+                    return NotFound($"Usuario con ID {id} no encontrado.");
+                }
+
+                return Ok("Usuario actualizado correctamente.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error al actualizar usuario: {ex.Message}");
+            }
+        }
+
         [HttpDelete("{id:long}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
@@ -130,6 +190,40 @@ namespace Proyecto2025.Server.Controllers
             catch (Exception ex)
             {
                 return BadRequest($"Error al eliminar usuario: {ex.Message}");
+            }
+        }
+
+        [HttpGet("{estado}")]
+        public async Task<ActionResult<List<ListaUsuarioDTO>>> Activos(string estado)
+        {
+            try
+            {
+                object? users = null;
+                switch (estado)
+                {
+                    case "activos":
+
+                        users = await usuarioRepositorio.GetActivos();
+                        if (users == null)
+                        {
+                            return NotFound("No se encontraron usuarios cargados.");
+                        }
+                        break;
+                    case "inactivos":
+                        users = await usuarioRepositorio.GetInactivos();
+                        if (users == null)
+                        {
+                            return NotFound("No se encontraron los usuarios cargados.");
+                        }
+                        break;
+                }
+                
+                return Ok(users);
+                
+            }
+            catch (Exception e)
+            {
+                return BadRequest($"Error al obtener los usuarios: {e.Message}");
             }
         }
     }

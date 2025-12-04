@@ -68,6 +68,7 @@ namespace Proyecto2025.Repositorio.Repositorios
             usuarioExistente.LastName = user.LastName;
             usuarioExistente.Email = user.Email;
             usuarioExistente.RoleId = user.RoleId;
+            usuarioExistente.IsActive = user.IsActive;
 
             try
             {
@@ -102,6 +103,47 @@ namespace Proyecto2025.Repositorio.Repositorios
         public async Task<bool> ExisteEmailAsync(string email)
         {
             return await context.Users.AnyAsync(u => u.Email == email);
+        }
+
+        public async Task<List<User>> SelectUsuarios(string filtro)
+        {
+            return await context.Users
+                .Where(u => u.FirstName.ToLower().Contains(filtro)
+                    || u.LastName.ToLower().Contains(filtro)
+                    || u.Email.ToLower().Contains(filtro))
+                .ToListAsync();
+        }
+        public async Task<List<User>> GetActivos()
+        {
+            return await context.Users
+                .Where(u => u.IsActive)
+                .ToListAsync();
+        }
+        public async Task<List<User>> GetInactivos()
+        {
+            return await context.Users
+                .Where(u => !u.IsActive)
+                .ToListAsync();
+        }
+
+        public async Task<bool> DesactivarUsuarios(long id)
+        {
+            var user = await context.Users.FindAsync(id);
+            if (user == null) return false;
+
+            user.IsActive = false;
+            await context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> ActivarUsuarios(long id)
+        {
+            var user = await context.Users.FindAsync(id);
+            if (user == null) return false;
+
+            user.IsActive = true;
+            await context.SaveChangesAsync();
+            return true;
         }
     }
 }
