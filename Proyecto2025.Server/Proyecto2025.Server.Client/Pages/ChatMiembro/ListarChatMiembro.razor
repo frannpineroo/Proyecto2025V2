@@ -31,10 +31,14 @@
                 <td>@reg.CanWrite</td>
                 <td>@reg.JoinedAt</td>
                 <td>
-                    <a class="btn btn-primary">
-                        @*  href="/chatmember/editar/{registro.Id}" *@
+                    @* <a class="btn btn-primary">
+                         href="/chatmember/editar/{registro.Id}" 
+                        Editar
+                    </a> *@
+                    <a class="btn btn-primary" href="/chatmiembro/editar/@reg.Id">
                         Editar
                     </a>
+
                 </td>
                 <td>
                     <button class="btn btn-danger"
@@ -46,6 +50,11 @@
             </tr>
         }
     }
+
+    @*fijarse por q el boton editar de chat member no funciona al igual q el de chat, verificar todas las cosas de la page crear grupo
+        para poder simmplificar el codigo y ver si asi funciona de mejor manera y no tener tantas cosas en una sola page
+        verificar tambien q en los chat cuando se crea q cuando lo busque me salgan por el id,nombre y email del usuario
+    *@
 
 </table>
 <br />

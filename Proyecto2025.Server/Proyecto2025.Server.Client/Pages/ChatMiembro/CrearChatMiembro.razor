@@ -4,7 +4,7 @@
 @inject HttpClient Http
 <h3>Crear Chat Miembro</h3>
 
-@* falta hacer la page editar de chatmiembros *@
+
 <EditForm Model="chatmember" OnValidSubmit="Grabar" FormName="CrearMiembroForm">
     <DataAnnotationsValidator />
     <ValidationSummary />
@@ -76,19 +76,19 @@
         }
     }
 
-    private async Task Editar()
-    {
-        var respuesta = await http.Put<ChatMemberDTO, int>("api/ChatMember", chatmember);
-        if (!respuesta.Error)
-        {
-            navHttp.NavigateTo("/chatmiembro");
-        }
-        else
-        {
-            //var body = await respuesta.HttpResponseMessage.Content.ReadAsStringAsync();
-            Mensaje = respuesta.OptenerError();
-        }
-    }
+    // private async Task Editar()
+    // {
+    //     var respuesta = await http.Put<ChatMemberDTO, int>("api/ChatMember", chatmember);
+    //     if (!respuesta.Error)
+    //     {
+    //         navHttp.NavigateTo("/chatmiembro");
+    //     }
+    //     else
+    //     {
+    //         //var body = await respuesta.HttpResponseMessage.Content.ReadAsStringAsync();
+    //         Mensaje = respuesta.OptenerError();
+    //     }
+    // }
 
     private async Task Cancelar()
     {

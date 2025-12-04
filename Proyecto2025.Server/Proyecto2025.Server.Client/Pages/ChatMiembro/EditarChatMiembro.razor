@@ -1,5 +1,513 @@
-﻿<h3>EditarChatMiembro</h3>
+﻿@* @page "/chat/editar/{chatId:long}"
+
+@inject IChatServicio http
+@inject IChatMemberServicio http
+@inject NavigationManager navHttp
+@inject HttpClient httpClient
+
+<h3>Editar Grupo</h3>
+
+@if (isLoading)
+{
+    <p>Cargando datos...</p>
+}
+else
+{
+    <div class="contenedor">
+
+        <!-- DATOS DEL CHAT -->
+        <div class="box">
+            <h4>Información del Grupo</h4>
+
+            <label>Nombre</label>
+            <input class="form-control" @bind="chat.Nombre" />
+
+            <label>Descripción</label>
+            <textarea class="form-control" @bind="chat.Descripcion"></textarea>
+
+            <button class="btn btn-primary mt-2" @onclick="GuardarChat">
+                Guardar Cambios
+            </button>
+        </div>
+
+        <!-- MIEMBROS -->
+        <div class="box">
+            <h4>Miembros del Grupo</h4>
+
+            @foreach (var m in miembros)
+            {
+                <div class="miembro-item">
+                    <b>ID Usuario:</b> @m.UserId
+
+                    <div>
+                        <label>
+                            Moderador:
+                            <input type="checkbox" @bind="m.IsModerator" />
+                        </label>
+
+                        <label>
+                            Puede escribir:
+                            <input type="checkbox" @bind="m.CanWrite" />
+                        </label>
+
+                        <button class="btn btn-success btn-sm"
+                                @onclick="@(() => GuardarMiembro(m))">
+                            Guardar
+                        </button>
+
+                        <button class="btn btn-danger btn-sm"
+                                @onclick="@(() => EliminarMiembro(m.Id))">
+                            Eliminar
+                        </button>
+                    </div>
+                </div>
+            }
+
+            <hr />
+
+            <h5>Agregar Miembro</h5>
+
+            <input type="number" class="form-control"
+                   placeholder="ID Usuario"
+                   @bind="nuevoUserId" />
+
+            <button class="btn btn-success mt-2"
+                    @onclick="AgregarMiembro">
+                Agregar Miembro
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public long chatId { get; set; }
+
+    private ChatDTO chat = new();
+    private List<ListaChatMemberDTO> miembros = new();
+
+    private bool isLoading = true;
+    private long nuevoUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        isLoading = true;
+
+        // Obtener info del chat
+        var chatResp = await http.Get<ChatDTO>($"api/chat/{chatId}");
+        if (chatResp.Ok && chatResp.Respuesta != null)
+            chat = chatResp.Respuesta;
+
+        // Obtener miembros
+        var miembrosResp = await http.Get<List<ListaChatMemberDTO>>($"api/chatmember/chat/{chatId}");
+        if (miembrosResp.Ok && miembrosResp.Respuesta != null)
+            miembros = miembrosResp.Respuesta;
+
+        isLoading = false;
+    }
+
+    private async Task GuardarChat()
+    {
+        var resp = await http.Put<ChatDTO, ChatDTO>($"api/chat/{chatId}", chat);
+
+        if (resp.Ok)
+            await CargarDatos();
+    }
+
+    private async Task GuardarMiembro(ListaChatMemberDTO m)
+    {
+        var enviar = new ChatMemberDTO
+        {
+            Id = m.Id,
+            ChatId = m.ChatId,
+            UserId = m.UserId,
+            IsModerator = m.IsModerator,
+            CanWrite = m.CanWrite,
+            JoinedAt = m.JoinedAt
+        };
+
+        await http.Put<ChatMemberDTO, ChatMemberDTO>("api/chatmember", enviar);
+
+        await CargarDatos();
+    }
+
+    private async Task EliminarMiembro(long memberId)
+    {
+        await http.Delete($"api/chatmember/{memberId}");
+        await CargarDatos();
+    }
+
+    private async Task AgregarMiembro()
+    {
+        if (nuevoUserId <= 0)
+            return;
+
+        var nuevo = new ChatMemberDTO
+        {
+            ChatId = chatId,
+            UserId = nuevoUserId,
+            JoinedAt = DateTime.UtcNow,
+            IsModerator = false,
+            CanWrite = true
+        };
+
+        await http.Post<ChatMemberDTO, ChatMemberDTO>("api/chatmember", nuevo);
+
+        nuevoUserId = 0;
+
+        await CargarDatos();
+    }
+} *@
+
+
+@* @page "/chat/editar/{chatId:long}"
+
+@inject IChatServicio http
+@inject IChatMemberServicio http
+@inject NavigationManager navHttp
+
+<h3>Editar Grupo</h3>
+
+@if (isLoading)
+{
+    <p>Cargando datos...</p>
+}
+else
+{
+    <div class="contenedor">
+
+        <!-- DATOS DEL CHAT -->
+        <div class="box">
+            <h4>Información del Chat / Grupo</h4>
+
+            <label>Nombre del Chat</label>
+            <input class="form-control" @bind="chat.Name" />
+
+            <label>Es Grupo?</label>
+            <input type="checkbox" @bind="chat.IsGroup" />
+
+            <label>Moderado?</label>
+            <input type="checkbox" @bind="chat.IsModerated" />
+
+            <button class="btn btn-primary mt-2" @onclick="GuardarChat">
+                Guardar Cambios
+            </button>
+        </div>
+
+        <!-- MIEMBROS DEL CHAT -->
+        <div class="box">
+            <h4>Miembros del Chat</h4>
+
+            @foreach (var m in miembros)
+            {
+                <div class="miembro-item">
+                    <b>ID Usuario:</b> @m.UserId
+
+                    <div>
+                        <label>
+                            Moderador:
+                            <input type="checkbox" @bind="m.IsModerator" />
+                        </label>
+
+                        <label>
+                            Puede escribir:
+                            <input type="checkbox" @bind="m.CanWrite" />
+                        </label>
+
+                        <button class="btn btn-success btn-sm"
+                                @onclick="@(() => GuardarMiembro(m))">
+                            Guardar
+                        </button>
+
+                        <button class="btn btn-danger btn-sm"
+                                @onclick="@(() => EliminarMiembro(m.Id))">
+                            Eliminar
+                        </button>
+                    </div>
+                </div>
+            }
+
+            <hr />
+
+            <h5>Agregar Miembro</h5>
+
+            <input type="number" class="form-control"
+                   placeholder="ID Usuario"
+                   @bind="nuevoUserId" />
+
+            <button class="btn btn-success mt-2"
+                    @onclick="AgregarMiembro">
+                Agregar Miembro
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public long chatId { get; set; }
+
+    private ChatDTO chat = new();
+    private List<ListaChatMemberDTO> miembros = new();
+
+    private bool isLoading = true;
+    private long nuevoUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        isLoading = true;
+
+        // Obtener info del chat
+        var chatResp = await http.Get<ChatDTO>($"api/chat/{chatId}");
+        if (!chatResp.Error && chatResp.Respuesta != null)
+            chat = chatResp.Respuesta;
+
+        // Obtener miembros del chat
+        var miembrosResp = await http.Get<List<ListaChatMemberDTO>>
+            ($"api/chatmember/chat/{chatId}");
+
+        if (!miembrosResp.Error && miembrosResp.Respuesta != null)
+            miembros = miembrosResp.Respuesta;
+
+        isLoading = false;
+    }
+
+    private async Task GuardarChat()
+    {
+        chat.UpdatedAt = DateTime.UtcNow;
+
+        var resp = await http.Put<ChatDTO, ChatDTO>($"api/chat/{chatId}", chat);
+
+        if (!resp.Error)
+            await CargarDatos();
+    }
+
+    private async Task GuardarMiembro(ListaChatMemberDTO m)
+    {
+        var enviar = new ChatMemberDTO
+        {
+            Id = m.Id,
+            ChatId = m.ChatId,
+            UserId = m.UserId,
+            IsModerator = m.IsModerator,
+            CanWrite = m.CanWrite,
+            JoinedAt = m.JoinedAt
+        };
+
+        await http.Put<ChatMemberDTO, ChatMemberDTO>("api/chatmember", enviar);
+
+        await CargarDatos();
+    }
+
+    private async Task EliminarMiembro(long memberId)
+    {
+        await http.Delete($"api/chatmember/{memberId}");
+        await CargarDatos();
+    }
+
+    private async Task AgregarMiembro()
+    {
+        if (nuevoUserId <= 0)
+            return;
+
+        var nuevo = new ChatMemberDTO
+        {
+            ChatId = chatId,
+            UserId = nuevoUserId,
+            IsModerator = false,
+            CanWrite = true,
+            JoinedAt = DateTime.UtcNow
+        };
+
+        await http.Post<ChatMemberDTO, ChatMemberDTO>("api/chatmember", nuevo);
+
+        nuevoUserId = 0;
+
+        await CargarDatos();
+    }
+} *@
+
+
+@page "/chat/editar/{chatId:long}"
+
+@inject IChatServicio ChatService
+@inject IChatMemberServicio ChatMemberService
+@inject NavigationManager navHttp
+
+<h3>Editar Grupo</h3>
+
+@if (isLoading)
+{
+    <p>Cargando datos...</p>
+}
+else
+{
+    <div class="contenedor">
+
+        <!-- DATOS DEL CHAT -->
+        <div class="box">
+            <h4>Información del Chat</h4>
+
+            <label>Nombre</label>
+            <input class="form-control" @bind="chat.Name" />
+
+            <label>Es Grupo?</label>
+            <input type="checkbox" @bind="chat.IsGroup" />
+
+            <label>Moderado?</label>
+            <input type="checkbox" @bind="chat.IsModerated" />
+
+            <button class="btn btn-primary mt-2" @onclick="GuardarChat">
+                Guardar Cambios
+            </button>
+        </div>
+
+        <!-- LISTA DE MIEMBROS -->
+        <div class="box">
+            <h4>Miembros</h4>
+
+            @foreach (var m in miembros)
+            {
+                <div class="miembro-item">
+                    <b>ID Usuario:</b> @m.UserId
+
+                    <div>
+                        <label>
+                            Moderador:
+                            <input type="checkbox" @bind="m.IsModerator" />
+                        </label>
+
+                        <label>
+                            Puede escribir:
+                            <input type="checkbox" @bind="m.CanWrite" />
+                        </label>
+
+                        <button class="btn btn-success btn-sm"
+                                @onclick="@(() => GuardarMiembro(m))">
+                            Guardar
+                        </button>
+
+                        <button class="btn btn-danger btn-sm"
+                                @onclick="@(() => EliminarMiembro(m.Id))">
+                            Eliminar
+                        </button>
+                    </div>
+                </div>
+            }
+
+            <hr />
+
+            <h5>Agregar Miembro</h5>
+            <input type="number" class="form-control"
+                   placeholder="ID Usuario"
+                   @bind="nuevoUserId" />
+
+            <button class="btn btn-success mt-2"
+                    @onclick="AgregarMiembro">
+                Agregar Miembro
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public long chatId { get; set; }
+
+    private ChatDTO chat = new();
+    private List<ListaChatMemberDTO> miembros = new();
+
+    private bool isLoading = true;
+    private long nuevoUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        isLoading = true;
+
+        var chatResp = await ChatService.GetEsAsync<ChatDTO>($"api/chat/{chatId}");
+        if (!chatResp.Error)
+            chat = chatResp.Respuesta;
+
+        var miembrosResp =
+            await ChatMemberService.Get<List<ListaChatMemberDTO>>(
+                $"api/ChatMember/por-chat/{chatId}");
+
+        if (!miembrosResp.Error)
+            miembros = miembrosResp.Respuesta;
+
+        isLoading = false;
+    }
+
+    private async Task GuardarChat()
+    {
+        chat.UpdatedAt = DateTime.UtcNow;
+
+        await ChatService.Put<ChatDTO, ChatDTO>($"api/chat/{chatId}", chat);
+        await CargarDatos();
+    }
+
+    private async Task GuardarMiembro(ListaChatMemberDTO m)
+    {
+        var enviar = new ChatMemberDTO
+        {
+            Id = m.Id,
+            ChatId = m.ChatId,
+            UserId = m.UserId,
+            IsModerator = m.IsModerator,
+            CanWrite = m.CanWrite,
+            JoinedAt = m.JoinedAt
+        };
+
+        await ChatMemberService.Put<ChatMemberDTO, ChatMemberDTO>(
+            $"api/ChatMember/por-id/{m.Id}", enviar);
+
+        await CargarDatos();
+    }
+
+    private async Task EliminarMiembro(long memberId)
+    {
+        await ChatMemberService.Delete($"api/chatmember/{memberId}");
+        await CargarDatos();
+    }
+
+    private async Task AgregarMiembro()
+    {
+        if (nuevoUserId <= 0)
+            return;
+
+        var nuevo = new ChatMemberDTO
+        {
+            ChatId = chatId,
+            UserId = nuevoUserId,
+            IsModerator = false,
+            CanWrite = true,
+            JoinedAt = DateTime.UtcNow
+        };
+
+        await ChatMemberService.Post<ChatMemberDTO, ChatMemberDTO>(
+            "api/chatmember", nuevo);
+
+        nuevoUserId = 0;
+        await CargarDatos();
+    }
+}
+
+
+
+@* <h3>EditarChatMiembro</h3>
 
 @code {
 
-}
+} *@

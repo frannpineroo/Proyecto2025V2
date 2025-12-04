@@ -78,10 +78,14 @@
                 <td>@reg.IsGroup</td>
                 <td>@reg.IsModerated</td>
                 <td>
-                    <a class="btn btn-primary"
+                    @* <a class="btn btn-primary"
                        href="/chat/editar/{registro.Id}">
                         Editar
+                    </a> *@
+                    <a class="btn btn-primary" href="/chat/editar/@reg.Id">
+                        Editar
                     </a>
+                    @*tengo q verificar por q no me funciona el bton editar*@
                 </td>
                 <td>
                     <button class="btn btn-primary" type="submit">Aceptar</button>

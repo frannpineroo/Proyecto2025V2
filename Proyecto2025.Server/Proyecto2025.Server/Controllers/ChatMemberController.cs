@@ -51,7 +51,7 @@ namespace Proyecto2025.Server.Controllers
 
         }
         #region
-        [HttpGet("por-id/{Id}")]
+        [HttpGet("por-chat/{chatId}")]
         public async Task<ActionResult<IEnumerable<ChatMember>>> GetChatMembers(long chatId)
         {
             // Inicialización simplificada y con miembros requeridos
