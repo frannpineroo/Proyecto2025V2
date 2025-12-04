@@ -103,5 +103,14 @@ namespace Proyecto2025.Repositorio.Repositorios
         {
             return await context.Users.AnyAsync(u => u.Email == email);
         }
+
+        public async Task<List<User>> SelectUsuarios(string filtro)
+        {
+            return await context.Users
+                .Where(u => u.FirstName.ToLower().Contains(filtro) 
+                    || u.LastName.ToLower().Contains(filtro)
+                    || u.Email.ToLower().Contains(filtro))
+                .ToListAsync();
+        }
     }
 }

@@ -408,7 +408,7 @@
     private List<CrearUsuarioDTO> UsuariosFiltrados = new();
     private string SearchUserTerm = "";
 
-    
+
 
 
     // --- LLAMADAS A API ---------------------------------------------------
@@ -673,6 +673,45 @@
                         </div>
                     </div>
                 }
+            }
+        </div>
+
+        @*AGREGADO POR GABY*@
+        <div class="search-box">
+
+            <form @onsubmit="BuscarUsuarios1">
+                <input @bind="filtro" placeholder="Buscar por nombre o email..." class="form-control" />
+                <button type="submit" class="btn btn-primary mt-2">Buscar</button>
+            </form>
+
+            @if (listaUsuarios != null)
+            {
+
+                <table class="table">
+
+                    <thead>
+                        <tr>
+                            <th>Usuarios encontrados</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var u in listaUsuarios)
+                        {
+                            <tr>
+                                <td>@u.FirstName @u.LastName</td>
+
+                                <td>
+                                    <form asp-action="CrearChat" method="post">
+                                        <input type="hidden" name="usuarioActualId" value="" />
+                                        <input type="hidden" name="usuarioSeleccionadoId" value="@u.Id" />
+                                        <button type="button" class="btn btn-success">Crear chat</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             }
         </div>
 
@@ -1004,6 +1043,25 @@
 
         await chatMemberServicio.Post<ChatMemberDTO, object>("api/chatmember/crear", member);
         await CargarMiembros();
+    }
+
+    //Agregado por GABY 
+
+    private string filtro = string.Empty;
+    private List<ListaUsuarioDTO>? listaUsuarios;
+
+    public async Task BuscarUsuarios1()
+    {
+        var resultado = await chatMemberServicio.Get<List<ListaUsuarioDTO>>($"api/Usuario/{filtro}");
+
+        if (!resultado.Error && resultado.Respuesta is not null)
+        {
+            listaUsuarios = resultado.Respuesta;
+        }
+        else
+        {
+            Console.WriteLine("No se pudo cargar usuarios");
+        }
     }
 }
 

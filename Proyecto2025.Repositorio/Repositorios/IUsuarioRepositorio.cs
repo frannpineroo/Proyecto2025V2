@@ -13,5 +13,6 @@ namespace Proyecto2025.Repositorio.Repositorios
         Task<bool> EliminarUsuarioAsync(long id);
         Task<bool> ExisteUsuarioAsync(long id);
         Task<bool> ExisteEmailAsync(string email);
+        Task<List<User>> SelectUsuarios(string filtro);
     }
 }

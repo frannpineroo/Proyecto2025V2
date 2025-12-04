@@ -45,6 +45,25 @@ namespace Proyecto2025.Server.Controllers
 
             return Ok(chats);
         }
+
+        [HttpGet("{id}/chats")] //chats de usuario
+        public async Task<ActionResult<List<ListaChatDTO>>> GetChats(long id)
+        {
+            
+            var chats = await context.ChatMembers
+            .Where(cm => cm.UserId == id)
+            .Join(context.Chats, 
+                    cm => cm.ChatId,
+                    ch => ch.Id,
+                    (cm,ch) => ch).ToListAsync();
+
+            if (chats == null)
+            {
+                return NotFound("No se encontraron chats, verifique de nuevo.");
+            }
+            return Ok(chats);
+        }
+
         #region
         [HttpGet("por-chat-lista/{id}")]//listachats
         public async Task<ActionResult<List<ListaChatDTO>>> GetChatslista(long id)
@@ -52,6 +71,36 @@ namespace Proyecto2025.Server.Controllers
             var chats = await repositorio.SelectById(id);
             //var chats = await context.Chats.ToListAsync();
             if (chats == null)
+            {
+                return NotFound("No se encontraron chats, verifique de nuevo.");
+            }
+            return Ok(chats);
+        }
+
+        [HttpGet("{id}/{filtro}")]
+        public async Task<ActionResult<List<ListaChatDTO>>> GetChats(long id, string filtro)
+        {
+            //try
+            //{
+            //    return await context.Chats
+            //    .Where(u => u.Name.ToLower().Contains(filtro)).ToListAsync();
+            //
+            //    
+            //}
+            //catch (Exception e)
+            //{
+            //    return BadRequest($"Error al obtener los usuarios: {e.Message}");
+            //}
+            var chats = await context.ChatMembers
+            .Where(cm => cm.UserId == id)
+            .Join(context.Chats,
+                    cm => cm.ChatId,
+                    ch => ch.Id,
+                    (cm, ch) => ch)
+            .Where(ch => ch.Name.ToLower().Contains(filtro.ToLower()))
+            .ToListAsync();
+
+            if (chats.Count == 0)
             {
                 return NotFound("No se encontraron chats, verifique de nuevo.");
             }

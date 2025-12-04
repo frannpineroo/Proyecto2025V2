@@ -58,6 +58,24 @@ namespace Proyecto2025.Server.Controllers
             }
         }
 
+        [HttpGet("{filtro}")]
+        public async Task<ActionResult<List<ListaUsuarioDTO>>> GetUsers(string filtro)
+        {
+            try
+            {
+                var users = await usuarioRepositorio.SelectUsuarios(filtro);
+                if (users == null || users.Count == 0)
+                {
+                    return NotFound("No se encontraron los usuarios cargados.");
+                }
+                return Ok(users);
+            }
+            catch (Exception e)
+            {
+                return BadRequest($"Error al obtener los usuarios: {e.Message}");
+            }
+        }
+
         [HttpPost]
         [ProducesResponseType(typeof(long), 200)]
         [ProducesResponseType(400)]

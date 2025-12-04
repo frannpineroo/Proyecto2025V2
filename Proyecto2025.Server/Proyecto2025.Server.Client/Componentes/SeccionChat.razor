@@ -1,62 +1,32 @@
-﻿@* <div class="sidebar">
-    <div class="search-box">
-        <input placeholder="Buscar chats..." />
-    </div>
-
-    <div class="chat-section">
-        <h5>CHATS PRIVADOS</h5>
-        <div class="chat-item active">
-            <span class="avatar">LM</span>
-            <div class="chat-info">
-                <p class="name">Laura Martínez</p>
-                <p class="preview">¿Cómo va el proyec...</p>
-            </div>
-            <span class="badge">2</span>
-        </div>
-
-        <div class="chat-item">
-            <span class="avatar green">JR</span>
-            <div class="chat-info">
-                <p class="name">Juan Rodríguez</p>
-                <p class="preview">Gracias por la info...</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="chat-section">
-        <h5>CHATS GRUPALES</h5>
-        <div class="chat-item">
-            <span class="avatar purple">ED</span>
-            <div class="chat-info">
-                <p class="name">Equipo de Diseño</p>
-                <p class="preview">Carlos: Revisemos los mockups</p>
-            </div>
-            <span class="badge">5</span>
-        </div>
-        <div class="chat-item">
-            <span class="avatar yellow">MK</span>
-            <div class="chat-info">
-                <p class="name">Marketing</p>
-                <p class="preview">Ana: Enviado el reporte</p>
-            </div>
-        </div>
-        <div class="chat-item">
-            <span class="avatar red">PA</span>
-            <div class="chat-info">
-                <p class="name">Proyecto Alpha</p>
-                <p class="preview">Reunión mañana a las 9:00</p>
-            </div>
-        </div>
-    </div>
-</div> *@
-
+﻿
 @page "/chat-sidebar"
 @inject IChatServicio chatServicio
 @using Proyecto2025.Shared.DTO
 
 <div class="sidebar">
     <div class="search-box">
-        <input @bind="searchText" @bind:event="oninput" placeholder="Buscar chats por nombre o ID..." />
+
+        <form @onsubmit="BuscarChats">
+            <input @bind= "filtro" placeholder="Buscar por nombre..." class="form-control" />
+            <button type="submit" class="btn btn-primary mt-2" >Buscar</button>
+        </form>
+
+        
+        @if (listaChats != null)
+        {
+            <div class="Chat-resultados">
+     
+                @foreach (var u in listaChats)
+                {
+                    <div class="chat-item" @onclick="() => EnterChat(u.Id)">
+                    <span class="avatar">@GetInitials(u.Name)</span>
+                    <div class="chat-info">
+                        <p class="name">@u.Name</p>
+                    </div>
+                    </div>
+                }
+            </div>
+        }
     </div>
 
     <div class="chat-section">
@@ -64,7 +34,7 @@
         @foreach (var chat in FilteredPrivateChats)
         {
             <div class="chat-item @(chat.Id == selectedChatId ? "active" : "")"
-                 @onclick="() => EnterChat(chat.Id)">
+            @onclick="() => EnterChat(chat.Id)">
                 <span class="avatar">@GetInitials(chat.Name)</span>
                 <div class="chat-info">
                     <p class="name">@chat.Name</p>
@@ -79,7 +49,7 @@
         @foreach (var chat in FilteredGroupChats)
         {
             <div class="chat-item @(chat.Id == selectedChatId ? "active" : "")"
-                 @onclick="() => EnterChat(chat.Id)">
+            @onclick="() => EnterChat(chat.Id)">
                 <span class="avatar">@GetInitials(chat.Name)</span>
                 <div class="chat-info">
                     <p class="name">@chat.Name</p>
@@ -93,9 +63,13 @@
 @code {
     private long selectedChatId;
     private string searchText = string.Empty;
+    long id = 1;
 
     private List<ListaChatDTO> Chats = new();
     private List<ListaChatDTO> ChatsOriginal = new();
+    private List<ListaChatDTO>? listaChats;
+
+    private string filtro = string.Empty; 
 
     protected override async Task OnInitializedAsync()
     {
@@ -104,7 +78,7 @@
 
     private async Task LoadChats()
     {
-        var resultado = await chatServicio.GetEsAsync<List<ListaChatDTO>>("api/chat");
+        var resultado = await chatServicio.GetEsAsync<List<ListaChatDTO>>($"api/chat/{id}/chats");
 
         if (!resultado.Error && resultado.Respuesta is not null)
         {
@@ -143,6 +117,26 @@
         var parts = name.Split(' ');
         if (parts.Length == 1) return parts[0][0].ToString();
         return string.Concat(parts[0][0], parts[1][0]);
+    }
+
+    public async Task BuscarChats()
+    {
+        try {
+            var resultado = await chatServicio.GetEsAsync<List<ListaChatDTO>>($"api/chat/{id}/{filtro}");
+
+            if (!resultado.Error && resultado.Respuesta is not null)
+            {
+                listaChats = resultado.Respuesta;
+            }
+            else
+            {
+                Console.WriteLine("No se pudo cargar usuarios");
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("ERROR: " + e.Message);
+        }
     }
 }
 
