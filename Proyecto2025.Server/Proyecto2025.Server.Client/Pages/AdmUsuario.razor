@@ -1,13 +1,13 @@
 ﻿@page "/AdmUsuario"
-
+@inject NavigationManager nav
 @inject IHttpServicio http
 
 <div class="container-fluid py-4 text-light bg-dark">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Administración de Usuarios</h2>
         <div>
-            <button class="btn btn-secondary me-2"><i class="bi bi-download"></i> Volver </button>
-            <button class="btn btn-primary"><i class="bi bi-plus"></i> Añadir Usuario</button>
+            <button class="btn btn-secondary me-2" @onclick="@(()=> nav.NavigateTo("/Principal"))"><i class="bi bi-download"></i> Volver </button>
+            <button class="btn btn-primary" @onclick="@(()=> nav.NavigateTo("/registrar-user"))"><i class="bi bi-plus"></i> Añadir Usuario</button>
         </div>
     </div>
 
@@ -24,7 +24,7 @@
 
     <table class="table table-dark table-hover align-middle">
         <thead>
-            <tr>
+            <tr class="text-center">
                 <th>Usuario</th>
                 <th>Email</th>
                 <th>Rol</th>
@@ -32,7 +32,7 @@
                 <th>    Acciones</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody class="text-center">
             @foreach (var user in usuarios)
             {
                 <tr>
@@ -80,25 +80,14 @@
                             <button class="btn btn-outline-light btn-sm me-2" @onclick="() => ActivarUsuario(user.Id)"><i class=" bi bi-arrow-repeat"></i>Activar</button>
                         }
                         <button class="btn btn-outline-light btn-sm me-2"><i class=" bi bi-arrow-repeat"></i> Ver chats</button>
-                        <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i>Eliminar</button>
+                        
                     </td>
                 </tr>
             }
         </tbody>
     </table>
 
-    <div class="d-flex justify-content-between align-items-center">
-
-        <nav>
-            <ul class="pagination pagination-sm mb-0">
-                <li class="page-item disabled"><a class="page-link bg-dark text-white">‹</a></li>
-                <li class="page-item active"><a class="page-link bg-primary border-primary" href="#">1</a></li>
-                <li class="page-item"><a class="page-link bg-dark text-white" href="#">2</a></li>
-                <li class="page-item"><a class="page-link bg-dark text-white" href="#">3</a></li>
-                <li class="page-item"><a class="page-link bg-dark text-white" href="#">›</a></li>
-            </ul>
-        </nav>
-    </div>
+   
 </div>
 
 <style>
