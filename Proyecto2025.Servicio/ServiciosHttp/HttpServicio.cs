@@ -46,6 +46,25 @@ namespace Proyecto2025.Servicio.ServiciosHttp
 
         }
 
+        public async Task<HttpRespuesta<TResp>> Put<T, TResp>(string url, T entidad)
+        {
+            var JsonAEnviar = JsonSerializer.Serialize(entidad);
+            var contenido = new StringContent(JsonAEnviar,
+                                              System.Text.Encoding.UTF8,
+                                              "application/json");
+
+            var response = await http.PutAsync(url, contenido);
+            if (response.IsSuccessStatusCode)
+            {
+                var respuesta = await DesSerializar<TResp>(response);
+                return new HttpRespuesta<TResp>(respuesta, false, response);
+            }
+            else
+            {
+                return new HttpRespuesta<TResp>(default, true, response);
+            }
+
+        }
         public async Task<HttpRespuesta<object>> Delete(string url)
         {
             var respuesta = await http.DeleteAsync(url);

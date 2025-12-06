@@ -1,0 +1,201 @@
+﻿@page "/AdmUsuario"
+@inject NavigationManager nav
+@inject IHttpServicio http
+
+<div class="container-fluid py-4 text-light bg-dark">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Administración de Usuarios</h2>
+        <div>
+            <button class="btn btn-secondary me-2" @onclick="@(()=> nav.NavigateTo("/Principal"))"><i class="bi bi-download"></i> Volver </button>
+            <button class="btn btn-primary" @onclick="@(()=> nav.NavigateTo("/registrar-user"))"><i class="bi bi-plus"></i> Añadir Usuario</button>
+        </div>
+    </div>
+
+    <div class="btn-group mb-3">
+        <button class="btn btn-primary" @onclick= "verUsuarios">Todos</button>
+        <button class="btn btn-success" @onclick="filtrarUsuarios1">Activos</button>
+        <button class="btn btn-danger" @onclick="filtrarUsuarios2">Inactivos</button>
+    </div>
+
+    <form @onsubmit="BuscarUsuarios" class="mb-3 d-flex">
+        <input @bind="filtro" class="form-control bg-secondary text-white me-2" placeholder="Buscar usuarios...">
+        <button type="submit" class="btn btn-primary">Buscar</button>
+    </form>
+
+    <table class="table table-dark table-hover align-middle">
+        <thead>
+            <tr class="text-center">
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>    Acciones</th>
+            </tr>
+        </thead>
+        <tbody class="text-center">
+            @foreach (var user in usuarios)
+            {
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-secondary text-center text-uppercase me-2" 
+                            style="width:35px; height:35px; line-height:35px;">
+                                @user.Id
+                            </div>
+                            <span> @user.FirstName @user.LastName </span>
+                        </div>
+                    </td>
+                    <td>@user.Email</td>
+                    <td>
+                        @if (user.RoleId == 1)
+                        {
+                            <span>Administrador</span>
+                        }
+                        else
+                        {
+                            <span>Usuario</span>
+                        }
+                    </td>
+                    <td>
+                        @if (user.IsActive == true)
+                        {
+                            <span class="badge bg-success">Activo</span>
+                        }
+                        else if (user.IsActive == false)
+                        {
+                            <span class="badge bg-secondary">Inactivo</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">@user.IsActive</span>
+                        }
+                    </td>
+                    <td>
+                        @if (user.IsActive == true)
+                        {
+                            <button class="btn btn-outline-light btn-sm me-2" @onclick="() => DesactivarUsuario(user.Id)"><i class="bi bi-arrow-repeat"></i>Desactivar</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-outline-light btn-sm me-2" @onclick="() => ActivarUsuario(user.Id)"><i class=" bi bi-arrow-repeat"></i>Activar</button>
+                        }
+                        <button class="btn btn-outline-light btn-sm me-2"><i class=" bi bi-arrow-repeat"></i> Ver chats</button>
+                        
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+   
+</div>
+
+<style>
+    body {
+    background-color: #111827;
+    font-family: 'Segoe UI', sans-serif;
+    }
+    .table-dark {
+    --bs-table-bg: #1f2937;
+    --bs-table-hover-bg: #374151;
+    color: #e5e7eb;
+    }
+    .form-control::placeholder {
+    color: #9ca3af;
+    }
+    .btn-outline-light:hover {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    }
+</style>
+
+@code{
+    List<ListaUsuarioDTO>? usuarios = new();
+    List<ListaUsuarioDTO>? usuariosFiltrados = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await verUsuarios();
+    }
+
+    private async Task verUsuarios(){
+        var resp = await http.Get<List<ListaUsuarioDTO>>("api/Usuario");
+        if (!resp.Error)
+        {
+            usuarios = resp.Respuesta;
+        }
+
+    }
+
+    private async Task filtrarUsuarios1()
+    {
+        string estado = "activos";
+        var resp = await http.Get<List<ListaUsuarioDTO>>($"api/Usuario/{estado}");
+        if (!resp.Error)
+        {
+            usuarios = resp.Respuesta;
+        }
+    }    
+
+    private async Task filtrarUsuarios2(){
+        string estado = "inactivos";
+        var resp = await http.Get<List<ListaUsuarioDTO>>($"api/Usuario/{estado}");
+        if (!resp.Error)
+        {
+            usuarios = resp.Respuesta;
+        }
+    }
+
+    private string filtro = string.Empty;
+
+    public async Task BuscarUsuarios()
+    {
+        var resultado = await http.Get<List<ListaUsuarioDTO>>($"api/Usuario/buscar/{filtro}");
+
+        if (!resultado.Error && resultado.Respuesta is not null)
+        {
+            usuarios = resultado.Respuesta;
+        }
+        else
+        {
+            Console.WriteLine("No se pudo cargar usuarios");
+        }
+    }
+
+    public async Task DesactivarUsuario(long id)
+    {
+        var nuevoUsuario = new ListaUsuarioDTO { Id = id, IsActive = false };
+        var resultado = await http.Put<ListaUsuarioDTO, long>($"api/Usuario/{id}/Desactivar", nuevoUsuario);
+
+        if (!resultado.Error)
+        {
+            await verUsuarios();
+        }
+        else
+        {
+            Console.WriteLine("No se pudo desactivar usuario");
+        }
+
+    }
+
+    public async Task ActivarUsuario(long id)
+    {
+        var nuevoUsuario = new ListaUsuarioDTO { Id = id, IsActive = true };
+        var resultado = await http.Put<ListaUsuarioDTO, long>($"api/Usuario/{id}/Activar", nuevoUsuario);
+
+        if (!resultado.Error)
+        {
+            //var usuario = usuarios.FirstOrDefault(u => u.Id == id);
+            //if (usuario != null)
+            //    usuario.IsActive = true;
+            //
+            //StateHasChanged();
+            await verUsuarios();
+        }
+        else
+        {
+            Console.WriteLine("No se pudo desactivar usuario");
+        }
+
+    }
+}   

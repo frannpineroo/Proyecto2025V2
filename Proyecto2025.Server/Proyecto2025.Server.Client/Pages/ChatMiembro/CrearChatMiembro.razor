@@ -1,4 +1,5 @@
-﻿@page "/chatmiembro/crear"
+﻿﻿
+@page "/chatmiembro/crear"
 @inject IChatMemberServicio http
 @inject NavigationManager navHttp
 @inject HttpClient Http
@@ -65,6 +66,20 @@
     private async Task Grabar()
     {
         var respuesta = await http.Post<ChatMemberDTO, int>("api/ChatMember", chatmember);
+        if (!respuesta.Error)
+        {
+            navHttp.NavigateTo("/chatmiembro");
+        }
+        else
+        {
+            //var body = await respuesta.HttpResponseMessage.Content.ReadAsStringAsync();
+            Mensaje = respuesta.OptenerError();
+        }
+    }
+
+    private async Task Editar()
+    {
+        var respuesta = await http.Put<ChatMemberDTO, int>("api/ChatMember", chatmember);
         if (!respuesta.Error)
         {
             navHttp.NavigateTo("/chatmiembro");
