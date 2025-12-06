@@ -82,23 +82,5 @@ namespace Proyecto2025.Servicio.ServiciosHttp
                     PropertyNameCaseInsensitive = true
                 });
         }
-
-        // Implementación de Put
-        public async Task<HttpRespuesta<TResponse>> Put<TResponse, TRequest>(string url, TRequest data)
-        {
-            var json = JsonSerializer.Serialize(data);
-            var contenido = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await http.PutAsync(url, contenido);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var respuesta = await DesSerializar<TResponse>(response);
-                return new HttpRespuesta<TResponse>(respuesta, false, response);
-            }
-            else
-            {
-                return new HttpRespuesta<TResponse>(default, true, response);
-            }
-        }
     }
 }
