@@ -22,19 +22,21 @@ public class NotificationsController : ControllerBase
         IHubContext<NotificationHub> hubContext
     )
     {
+        // Guardo las dependencias que voy a usar en los endpoints
         _notificacionRepo = notificacionRepo;
         _context = context;
         _hubContext = hubContext;
     }
 
-    // ------------------------------
-    // OBTENER NOTIFICACIONES PENDIENTES
-    // ------------------------------
+    // =======================================================
+    // OBTENER NOTIFICACIONES PENDIENTES DE UN USUARIO
+    // =======================================================
     [HttpGet("user/{userId}/pending")]
     public async Task<ActionResult<List<NotificationDTO>>> GetPendingByUser(int userId)
     {
         try
         {
+            // Pido las notificaciones pendientes al repositorio
             var notifications = await _notificacionRepo.GetPendingByUserAsync(userId);
             return Ok(notifications);
         }
@@ -44,38 +46,39 @@ public class NotificationsController : ControllerBase
         }
     }
 
-    // ------------------------------
-    // CONTAR PENDIENTES
-    // ------------------------------
+    // =======================================================
+    // OBTENER SOLO LA CANTIDAD DE NOTIFICACIONES PENDIENTES
+    // =======================================================
     [HttpGet("count/{userId}")]
     public async Task<ActionResult<int>> GetCount(int userId)
     {
+        // Uso el mismo método que arriba pero solo cuento cuántas son
         var list = await _notificacionRepo.GetPendingByUserAsync(userId);
         return Ok(list.Count);
     }
 
-    // ------------------------------
-    // MARCAR COMO LEÍDA
-    // ------------------------------
+    // =======================================================
+    // MARCAR UNA NOTIFICACIÓN COMO LEÍDA
+    // =======================================================
     [HttpPut("{notificationId}/markasread")]
     public async Task<IActionResult> MarkAsRead(long notificationId)
     {
         try
         {
-            var exito = await _notificacionRepo.MarkAsReadAsync(notificationId);
+            // Busco la notificación en la base para obtener también el UserId
+            var notification = await _context.Notifications.FindAsync(notificationId);
 
-            if (!exito)
-            {
+            // Si no existe, devuelvo 404
+            if (notification == null)
                 return NotFound($"No existe la notificación con el Id: {notificationId}.");
-            }
 
-            // 🔵 OPCIÓN 1 (si no tenés userId en el repo)
-            // Avisar a TODOS que se actualice el badge
-            await _hubContext.Clients.All.SendAsync("NotificationUpdated");
+            // La marco como leída
+            notification.IsPending = false;
+            await _context.SaveChangesAsync();
 
-            // 🔵 OPCIÓN 2 (ideal si tenés userId de esa notificación)
-            // await _hubContext.Clients.User(userId.ToString())
-            //     .SendAsync("NotificationUpdated");
+            // Aviso por SignalR solo al usuario dueño de la notificación
+            await _hubContext.Clients.User(notification.UserId.ToString())
+                .SendAsync("NotificationUpdated");
 
             return NoContent();
         }
@@ -85,16 +88,22 @@ public class NotificationsController : ControllerBase
         }
     }
 
-    // ------------------------------
-    // CREAR NOTIFICACIÓN (TEST)
-    // ------------------------------
+    // =======================================================
+    // CREAR UNA NOTIFICACIÓN (MODO TEST)
+    // =======================================================
+    // Nota: este endpoint lo estoy usando solo para probar SignalR.
     [HttpPost("send-test")]
     public async Task<IActionResult> Post([FromBody] NotificationDTO dto)
     {
+        // Validación mínima para evitar errores si el mensaje viene vacío
+        if (string.IsNullOrWhiteSpace(dto.Message))
+            return BadRequest("El mensaje no puede estar vacío.");
+
+        // Creo la entidad con los datos del DTO
         var notificationEntity = new Notification
         {
             Message = dto.Message,
-            CreatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,   // Mantengo la misma convención que el repositorio
             IsPending = true,
             UserId = dto.UserId
         };
@@ -102,7 +111,7 @@ public class NotificationsController : ControllerBase
         await _context.Notifications.AddAsync(notificationEntity);
         await _context.SaveChangesAsync();
 
-        // 🔵 ENVIAR NOTIFICACIÓN EN TIEMPO REAL SOLO A ESE USER
+        // Envío la notificación en tiempo real al usuario correspondiente
         await _hubContext.Clients.User(dto.UserId.ToString())
             .SendAsync("ReceiveNotification", new
             {

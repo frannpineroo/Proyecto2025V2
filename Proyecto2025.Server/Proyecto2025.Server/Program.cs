@@ -8,45 +8,55 @@ using Proyecto2025.Servicio.ChatMemberServicioHttp;
 using Proyecto2025.Servicio.ChatServicioHttp;
 using Proyecto2025.Servicio.ServiciosHttp;
 using System;
-using System.Text.Json.Serialization;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Controllers y Swagger
+
+//  AGREGAR CONTROLLERS Y SWAGGER
+
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 
-// Agregando SignalR
+
+//  AGREGAR SIGNALR (PARA NOTIFICACIONES)
+
 builder.Services.AddSignalR();
 
-// DbContext con SQL Server
+
+//  CONFIGURAR BASE DE DATOS
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("El string de conexion no existe.");
+    ?? throw new InvalidOperationException("El string de conexión no existe.");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
+
+//  REGISTRO DE REPOSITORIOS
+
 builder.Services.AddScoped<IRepositorio<Chat>, Repositorio<Chat>>();
 builder.Services.AddScoped<IChatMemberRepositorio<ChatMember>, ChatMemberRepositorio<ChatMember>>();
 
-// Registro de Repositorios
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
-builder.Services.AddScoped<INotificationRepositorio, NotificationRepositorio>(); 
+builder.Services.AddScoped<INotificationRepositorio, NotificationRepositorio>();
 builder.Services.AddScoped<IMensajeRepositorio, MensajeRepositorio>();
+
+
+//  SERVICIOS HTTP (CLIENTE)
+
 builder.Services.AddScoped<IChatServicio, ChatServicio>();
 builder.Services.AddScoped<IChatMemberServicio, ChatMemberServicio>();
 builder.Services.AddScoped<IHttpServicio, HttpServicio>();
 
+//  HttpClient apuntando al servidor
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri("https://localhost:7016/")  
+    BaseAddress = new Uri("https://localhost:7016/")
 });
 
 
+//  BLAZOR
 
-
-// Blazor y Razor Components
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
@@ -55,7 +65,9 @@ builder.Services.AddServerSideBlazor();
 
 var app = builder.Build();
 
-// Middleware
+
+//  MIDDLEWARE
+
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
@@ -72,22 +84,34 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseHttpsRedirection();
 app.UseAntiforgery();
+
 app.MapStaticAssets();
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(Proyecto2025.Server.Client._Imports).Assembly);
 
+
+//  RUTAS DE CONTROLADORES
+
 app.MapControllers();
-// Mapeo del Hub de SignalR
+
+
+//  HUBS DE SIGNALR
+
 app.MapHub<MessageHub>("/messagehub");
 app.MapHub<NotificationHub>("/notificationhub");
 
+
+//  VERIFICAR CONEXIÓN A BD
+
 using var scope = app.Services.CreateScope();
 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
 try
 {
-    // Esto crea la base de datos si no existe
+    // Crea la base si no existe
     context.Database.EnsureCreated();
     Console.WriteLine("¡Conexión a la base de datos OK!");
 }
@@ -97,5 +121,6 @@ catch (Exception ex)
 }
 
 
+//  EJECUTAR LA APLICACIÓN
 
 app.Run();

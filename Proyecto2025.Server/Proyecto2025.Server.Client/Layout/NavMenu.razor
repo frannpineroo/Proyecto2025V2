@@ -49,7 +49,6 @@
             </NavLink>
         </div>
 
-
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="chat">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Chats
@@ -86,11 +85,9 @@
             </NavLink>
         </div>
 
-        @* 🔔 SECCIÓN DE NOTIFICACIONES (CONTADOR Y ENLACE) 🔔 *@
+        <!-- Ícono y contador de notificaciones -->
         <div class="nav-item px-3" style="position: relative;">
             <NavLink class="nav-link" href="notifications">
-
-                @* ⭐️ Cambiado a oi oi-bell por compatibilidad, si bi bi-bell-fill falla ⭐️ *@
                 <span class="oi oi-bell" aria-hidden="true"></span>
 
                 @if (pendingCount > 0)
@@ -104,7 +101,6 @@
                 Notificaciones
             </NavLink>
         </div>
-        @* -------------------------------------------------------- *@
 
     </nav>
 </div>
@@ -113,23 +109,23 @@
 @code {
     private HubConnection? hubConnection;
     private int pendingCount = 0;
-    private int userId = 2; // ⭐️ ID DE PRUEBA: Usamos 2 ya que confirmaste que tiene notificaciones.
+    private int userId = 2; // Usuario de prueba para mostrar notificaciones.
 
 
     protected override async Task OnInitializedAsync()
     {
-         await LoadPendingCount();
+        // Cargo el contador inicial desde el API
+        await LoadPendingCount();
 
-        // 👉 Crear la conexión al Hub
+        // Creo la conexión con el Hub de notificaciones
         hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/notificationhub"))
             .WithAutomaticReconnect()
             .Build();
 
-        // 👉 Cuando llega una nueva notificación (Recibe una notificación)
+        // Cuando llega una nueva notificación, vuelvo a consultar el contador
         hubConnection.On("ReceiveNotification", async () =>
         {
-            // ⭐️ CORRECCIÓN DE HILOS: Mueve la ejecución al Dispatcher (UI Thread)
             await InvokeAsync(async () =>
             {
                 await LoadPendingCount();
@@ -137,10 +133,9 @@
             });
         });
 
-        // 👉 Cuando una notificación cambia (ej: marcada como leída en otra pestaña)
+        // Cuando alguna notificación cambia (ej: leída), actualizo contador
         hubConnection.On("NotificationUpdated", async () =>
         {
-            // ⭐️ CORRECCIÓN DE HILOS: Mueve la ejecución al Dispatcher (UI Thread)
             await InvokeAsync(async () =>
             {
                 await LoadPendingCount();
@@ -148,25 +143,24 @@
             });
         });
 
+        // Inicio la conexión con SignalR
         await hubConnection.StartAsync();
     }
 
-
-    // 👉 Llama al controller para obtener el contador
+    // Consulta el API para saber cuántas notificaciones pendientes tengo
     private async Task LoadPendingCount()
     {
         try
         {
-            // Asegúrate que la ruta sea correcta (ej: api/Notification/count/2)
             pendingCount = await Http.GetFromJsonAsync<int>($"api/Notification/count/{userId}");
         }
         catch
         {
-            pendingCount = 0;
+            pendingCount = 0; // Si falla dejo el contador en 0 para que no rompa nada
         }
     }
 
-    // ⚠️ Importante para SignalR: Desechar la conexión
+    // Libero la conexión del hub cuando el componente se destruye
     public async ValueTask DisposeAsync()
     {
         if (hubConnection is not null)

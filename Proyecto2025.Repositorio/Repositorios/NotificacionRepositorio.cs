@@ -12,27 +12,30 @@ namespace Proyecto2025.Repositorio.Repositorios
 
         public NotificationRepositorio(AppDbContext context)
         {
+            // Guardo el contexto para poder trabajar con la base
             this.context = context;
         }
 
         public async Task<Notification> CrearNotificationAsync(NotificationDTO dto)
         {
+            // Creo una entidad nueva a partir de los datos que vienen del DTO
             var notificacion = new Notification
             {
                 Message = dto.Message,
                 UserId = dto.UserId,
-                CreatedAt = DateTime.UtcNow,
-                IsPending = true
+                CreatedAt = DateTime.UtcNow, // Fecha de creación en formato UTC
+                IsPending = true             // Todas las notificaciones arrancan como pendientes
             };
 
             context.Notifications.Add(notificacion);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(); // Guardo en la base
             return notificacion;
         }
 
-
         public async Task<List<NotificationDTO>> GetPendingByUserAsync(int userId)
         {
+            // Busco las notificaciones pendientes del usuario,
+            // ordenadas de más nueva a más vieja
             var notifications = await context.Notifications
                 .Where(n => n.UserId == userId && n.IsPending)
                 .OrderByDescending(n => n.CreatedAt)
@@ -51,11 +54,15 @@ namespace Proyecto2025.Repositorio.Repositorios
 
         public async Task<bool> MarkAsReadAsync(long notificationId)
         {
-
+            // Busco la notificación por ID
             var notification = await context.Notifications.FindAsync(notificationId);
+
+            // Si no existe, aviso que no se pudo marcar como leída
             if (notification == null) return false;
-            notification.IsPending = false;
-            await context.SaveChangesAsync();
+
+            notification.IsPending = false; // La marco como leída
+            await context.SaveChangesAsync(); // Actualizo en la base
+
             return true;
         }
     }
