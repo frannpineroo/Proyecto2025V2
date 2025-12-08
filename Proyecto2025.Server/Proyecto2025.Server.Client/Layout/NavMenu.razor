@@ -1,4 +1,8 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@inject HttpClient Http
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.SignalR.Client;
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Proyecto2025.Server</a>
     </div>
@@ -8,6 +12,7 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="nav flex-column">
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
@@ -80,6 +85,93 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> RegUsuario (Prueba)
             </NavLink>
         </div>
+
+        @* 🔔 SECCIÓN DE NOTIFICACIONES (CONTADOR Y ENLACE) 🔔 *@
+        <div class="nav-item px-3" style="position: relative;">
+            <NavLink class="nav-link" href="notifications">
+
+                @* ⭐️ Cambiado a oi oi-bell por compatibilidad, si bi bi-bell-fill falla ⭐️ *@
+                <span class="oi oi-bell" aria-hidden="true"></span>
+
+                @if (pendingCount > 0)
+                {
+                    <span class="badge bg-danger"
+                          style="position:absolute; top:0; right:0; font-size:0.7rem;">
+                        @pendingCount
+                    </span>
+                }
+
+                Notificaciones
+            </NavLink>
+        </div>
+        @* -------------------------------------------------------- *@
+
     </nav>
 </div>
-        
+
+
+@code {
+    private HubConnection? hubConnection;
+    private int pendingCount = 0;
+    private int userId = 2; // ⭐️ ID DE PRUEBA: Usamos 2 ya que confirmaste que tiene notificaciones.
+
+
+    protected override async Task OnInitializedAsync()
+    {
+         await LoadPendingCount();
+
+        // 👉 Crear la conexión al Hub
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/notificationhub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        // 👉 Cuando llega una nueva notificación (Recibe una notificación)
+        hubConnection.On("ReceiveNotification", async () =>
+        {
+            // ⭐️ CORRECCIÓN DE HILOS: Mueve la ejecución al Dispatcher (UI Thread)
+            await InvokeAsync(async () =>
+            {
+                await LoadPendingCount();
+                StateHasChanged();
+            });
+        });
+
+        // 👉 Cuando una notificación cambia (ej: marcada como leída en otra pestaña)
+        hubConnection.On("NotificationUpdated", async () =>
+        {
+            // ⭐️ CORRECCIÓN DE HILOS: Mueve la ejecución al Dispatcher (UI Thread)
+            await InvokeAsync(async () =>
+            {
+                await LoadPendingCount();
+                StateHasChanged();
+            });
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+
+    // 👉 Llama al controller para obtener el contador
+    private async Task LoadPendingCount()
+    {
+        try
+        {
+            // Asegúrate que la ruta sea correcta (ej: api/Notification/count/2)
+            pendingCount = await Http.GetFromJsonAsync<int>($"api/Notification/count/{userId}");
+        }
+        catch
+        {
+            pendingCount = 0;
+        }
+    }
+
+    // ⚠️ Importante para SignalR: Desechar la conexión
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+}

@@ -6,21 +6,21 @@ using Proyecto2025.Shared.DTO;
 
 namespace Proyecto2025.Repositorio.Repositorios
 {
-    public class NotificacionRepositorio : INotificacionRepositorio
+    public class NotificationRepositorio : INotificationRepositorio
     {
         private readonly AppDbContext context;
 
-        public NotificacionRepositorio(AppDbContext context)
+        public NotificationRepositorio(AppDbContext context)
         {
             this.context = context;
         }
 
-        public async Task<Notification> CrearNotificacionAsync(NotificationDTO dto)
+        public async Task<Notification> CrearNotificationAsync(NotificationDTO dto)
         {
             var notificacion = new Notification
             {
                 Message = dto.Message,
-                UserId = dto.UserId, 
+                UserId = dto.UserId,
                 CreatedAt = DateTime.UtcNow,
                 IsPending = true
             };
@@ -30,7 +30,7 @@ namespace Proyecto2025.Repositorio.Repositorios
             return notificacion;
         }
 
-   
+
         public async Task<List<NotificationDTO>> GetPendingByUserAsync(int userId)
         {
             var notifications = await context.Notifications
@@ -42,7 +42,7 @@ namespace Proyecto2025.Repositorio.Repositorios
                     Message = n.Message,
                     CreatedAt = n.CreatedAt,
                     IsPending = n.IsPending,
-                    UserId = n.UserId 
+                    UserId = n.UserId
                 })
                 .ToListAsync();
 
@@ -51,7 +51,7 @@ namespace Proyecto2025.Repositorio.Repositorios
 
         public async Task<bool> MarkAsReadAsync(long notificationId)
         {
-       
+
             var notification = await context.Notifications.FindAsync(notificationId);
             if (notification == null) return false;
             notification.IsPending = false;

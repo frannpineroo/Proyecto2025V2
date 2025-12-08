@@ -1,11 +1,10 @@
-﻿
-using Proyecto2025.BD.Datos.Entity;
-using Proyecto2025.Shared.DTO; 
+﻿using Proyecto2025.BD.Datos.Entity;
+using Proyecto2025.Shared.DTO;
 
-public interface INotificacionRepositorio
+public interface INotificationRepositorio
 {
-  
-    Task<Notification> CrearNotificacionAsync(NotificationDTO dto);
+
+    Task<Notification> CrearNotificationAsync(NotificationDTO dto);
 
     Task<List<NotificationDTO>> GetPendingByUserAsync(int userId);
     Task<bool> MarkAsReadAsync(long notificationId);

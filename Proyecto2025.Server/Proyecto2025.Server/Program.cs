@@ -32,15 +32,15 @@ builder.Services.AddScoped<IChatMemberRepositorio<ChatMember>, ChatMemberReposit
 
 // Registro de Repositorios
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
-builder.Services.AddScoped<INotificacionRepositorio, NotificacionRepositorio>(); // <-- ¡AQUÍ ESTÁ LA LÍNEA QUE AGREGUÉ!
+builder.Services.AddScoped<INotificationRepositorio, NotificationRepositorio>(); 
 builder.Services.AddScoped<IMensajeRepositorio, MensajeRepositorio>();
 builder.Services.AddScoped<IChatServicio, ChatServicio>();
 builder.Services.AddScoped<IChatMemberServicio, ChatMemberServicio>();
 builder.Services.AddScoped<IHttpServicio, HttpServicio>();
-// HttpClient configurado con BaseAddress
+
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri("https://localhost:7016/") // ⚠️ ajustá el puerto al de tu API
+    BaseAddress = new Uri("https://localhost:7016/")  
 });
 
 
@@ -68,6 +68,8 @@ else
     app.UseHsts();
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseHttpsRedirection();
 app.UseAntiforgery();
 app.MapStaticAssets();
@@ -79,6 +81,7 @@ app.MapRazorComponents<App>()
 app.MapControllers();
 // Mapeo del Hub de SignalR
 app.MapHub<MessageHub>("/messagehub");
+app.MapHub<NotificationHub>("/notificationhub");
 
 using var scope = app.Services.CreateScope();
 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
