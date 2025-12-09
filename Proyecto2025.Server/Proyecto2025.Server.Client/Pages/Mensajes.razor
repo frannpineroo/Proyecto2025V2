@@ -1,4 +1,5 @@
 ﻿@page "/mensajes/{chatId:int}"
+
 @using Proyecto2025.Servicio.ServiciosHttp
 @using Proyecto2025.Shared.DTO
 @using Microsoft.AspNetCore.SignalR.Client
@@ -7,7 +8,9 @@
 @inject IHttpServicio http
 @inject NavigationManager navHttp
 
-<h3>💬 Chat</h3>
+
+<h3>💬 @nombreChat</h3>
+
 
 <div class="chat-controls">
     <button class="erase-toggle" title="Ocultar mensajes" @onclick="ToggleSelectionMode">🧽</button>
@@ -54,40 +57,30 @@
 </div>
 
 @code {
-    //recibir ID de chat
+
     [Parameter] public int chatId { get; set; }
+    string nombreChat = "Chat";
 
     private HubConnection? hubConnection;
     List<VerMensajesDTO> mensajes = new();
     CrearMensajeDTO nuevoMensaje = new();
     string Mensaje = "";
-    //private readonly int chatId = 2; // ID del chat actual (debería cambiar segun el chat en la version final)
+
 
     // Selección para ocultar
     private bool selectionMode = false;
     private HashSet<int> selectedIds = new();
 
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     await LeerMensajes();
 
-    //     var hubUrl = navHttp.ToAbsoluteUri("/messagehub");
-    //     hubConnection = new HubConnectionBuilder()
-    //         .WithUrl(hubUrl)
-    //         .WithAutomaticReconnect()
-    //         .Build();
 
-    //     hubConnection.On<VerMensajesDTO>("ReceiveMessage", (msg) =>
-    //     {
-    //         mensajes.Add(msg);
-    //         InvokeAsync(StateHasChanged);
-    //     });
-
-    //     await hubConnection.StartAsync();
-    //     await hubConnection.SendAsync("JoinGroup", $"chat-{chatId}");
-    // }
     protected override async Task OnParametersSetAsync()
     {
+        await CargarChat();
+
+        // limpiar mensajes al cambiar de chat
+        mensajes.Clear();
+
+        // cargar historial del backend
         await LeerMensajes();
 
         if (hubConnection == null)
@@ -98,10 +91,10 @@
                 .WithAutomaticReconnect()
                 .Build();
 
+            // recibir mensajes nuevos de SignalR
             hubConnection.On<VerMensajesDTO>("ReceiveMessage", (msg) =>
             {
-                // Solo agregar si pertenece a este chat
-                if (msg.ChatId == chatId)
+                if (msg.ChatId == chatId) // filtrar por chat
                 {
                     mensajes.Add(msg);
                     InvokeAsync(StateHasChanged);
@@ -111,20 +104,28 @@
             await hubConnection.StartAsync();
         }
 
-        // Unirse al grupo del chat
+        // unirse al grupo de este chat
         await hubConnection.SendAsync("JoinGroup", $"chat-{chatId}");
     }
+    private async Task CargarChat()
+    {
+        var resp = await http.Get<ChatDTO>($"api/chat/{chatId}");
 
+        if (!resp.Error)
+        {
+            nombreChat = resp.Respuesta.Name;
+        }
+    }
 
     private async Task LeerMensajes()
     {
-        //var resp = await http.Get<List<VerMensajesDTO>>("api/message");
-        var resp = await http.Get<List<VerMensajesDTO>>($"api/message/chat{chatId}");
-        if(!resp.Error)
+        var resp = await http.Get<List<VerMensajesDTO>>($"api/message/chat/{chatId}");
+        if (!resp.Error)
         {
             mensajes = resp.Respuesta;
         }
     }
+
 
     private async Task EnviarMensaje()
     {
@@ -134,7 +135,8 @@
             return;
         }
 
-        nuevoMensaje.ChatId = 2;
+       
+        nuevoMensaje.ChatId = chatId;
         nuevoMensaje.SenderId = 3;
         nuevoMensaje.MessageType = "text";
         nuevoMensaje.SentAt = DateTime.UtcNow;
@@ -210,6 +212,7 @@
 
         StateHasChanged();
     }
+    
     
   
 }

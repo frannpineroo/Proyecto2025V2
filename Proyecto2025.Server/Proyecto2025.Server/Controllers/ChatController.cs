@@ -24,46 +24,94 @@ namespace Proyecto2025.Server.Controllers
             this.repositorio = repositorio;
         }
 
+        //[HttpGet]
+        //public async Task<ActionResult<List<Chat>>> GetAll()
+        //{
+        //    var chats = await repositorio.Select();
+        //    if (chats == null)
+        //    {
+        //        return NotFound("No se encontraron chats, verifique de nuevo.");
+        //    }
+        //    //mapeo de entidades a DTOs
+        //    //var listaDTO = chats.Select(chat => new ListaChatsDTO
+        //    //{
+        //    //    Id = chat.Id,
+        //    //    Name = chat.Name,
+        //    //    IsGroup = chat.IsGroup,
+        //    //    IsModerated = chat.IsModerated,
+        //    //    CreatedAt = chat.CreatedAt,
+        //    //    UpdatedAt = chat.UpdatedAt,
+        //    //}).ToList();
+
+        //    return Ok(chats);
+        //}
+
+        //[HttpGet("{id}/chats")] //chats de usuario
+        //public async Task<ActionResult<List<ListaChatDTO>>> GetChats(long id)
+        //{
+
+        //    var chats = await context.ChatMembers
+        //    .Where(cm => cm.UserId == id)
+        //    .Join(context.Chats,
+        //            cm => cm.ChatId,
+        //            ch => ch.Id,
+        //            (cm, ch) => ch).ToListAsync();
+
+        //    if (chats == null)
+        //    {
+        //        return NotFound("No se encontraron chats, verifique de nuevo.");
+        //    }
+        //    return Ok(chats);
+        //}
+
+
         [HttpGet]
-        public async Task<ActionResult<List<Chat>>> GetAll()
+        public async Task<ActionResult<List<ChatDTO>>> GetChats()
         {
-            var chats = await repositorio.Select();
-            if (chats == null)
-            {
-                return NotFound("No se encontraron chats, verifique de nuevo.");
-            }
-            //mapeo de entidades a DTOs
-            //var listaDTO = chats.Select(chat => new ListaChatsDTO
-            //{
-            //    Id = chat.Id,
-            //    Name = chat.Name,
-            //    IsGroup = chat.IsGroup,
-            //    IsModerated = chat.IsModerated,
-            //    CreatedAt = chat.CreatedAt,
-            //    UpdatedAt = chat.UpdatedAt,
-            //}).ToList();
+            var chats = await context.Chats
+                .Select(c => new ChatDTO
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    UltimoMensaje = context.Messages
+                        .Where(m => m.ChatId == c.Id)
+                        .OrderByDescending(m => m.SentAt)
+                        .Select(m => m.Content)
+                        .FirstOrDefault() ?? "Sin mensajes"
+                })
+                .ToListAsync();
 
             return Ok(chats);
         }
 
-        [HttpGet("{id}/chats")] //chats de usuario
-        public async Task<ActionResult<List<ListaChatDTO>>> GetChats(long id)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<ChatDTO>> GetChat(int id)
         {
+            var chat = await context.Chats
+                .Where(c => c.Id == id)
+                .Select(c => new ChatDTO
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    IsGroup = c.IsGroup,
+                    IsModerated = c.IsModerated,
+                    CreatedAt = c.CreatedAt,
+                    UpdatedAt = c.UpdatedAt,
+                    UltimoMensaje = context.Messages
+                        .Where(m => m.ChatId == c.Id)
+                        .OrderByDescending(m => m.SentAt)
+                        .Select(m => m.Content)
+                        .FirstOrDefault() ?? "Sin mensajes"
+                })
+                .FirstOrDefaultAsync();
 
-            var chats = await context.ChatMembers
-            .Where(cm => cm.UserId == id)
-            .Join(context.Chats,
-                    cm => cm.ChatId,
-                    ch => ch.Id,
-                    (cm, ch) => ch).ToListAsync();
-
-            if (chats == null)
+            if (chat == null)
             {
-                return NotFound("No se encontraron chats, verifique de nuevo.");
+                return NotFound("El chat no existe");
             }
-            return Ok(chats);
-        }
 
+            return Ok(chat);
+        }
         #region
         [HttpGet("por-chat-lista/{id}")]//listachats
         public async Task<ActionResult<List<ListaChatDTO>>> GetChatslista(long id)

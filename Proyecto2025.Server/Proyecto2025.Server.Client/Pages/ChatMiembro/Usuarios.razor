@@ -1,0 +1,98 @@
+﻿@page "/chats"
+@using Proyecto2025.Servicio.ServiciosHttp
+@using Proyecto2025.Shared.DTO
+
+@inject IHttpServicio http
+@inject NavigationManager nav
+
+<h3 style="margin-bottom:15px;">📒 Mis Contactos y Chats</h3>
+
+@if (chats == null)
+{
+    <p>Cargando chats...</p>
+}
+else if (chats.Count == 0)
+{
+    <p>No tenés chats todavía.</p>
+}
+else
+{
+    <div class="chat-list">
+        @foreach (var c in chats)
+        {
+            <div class="chat-item"
+                 @onclick="() => AbrirChat(c.Id)">
+                <div class="chat-avatar">
+                    @((!string.IsNullOrWhiteSpace(c.Name) ? c.Name.Substring(0, 1).ToUpper() : "?"))
+                </div>
+
+                <div class="chat-info">
+                    <div class="chat-title">@c.Name</div>
+                    <div class="chat-last">Último mensaje: @c.UltimoMensaje</div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    List<ChatDTO> chats = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var resp = await http.Get<List<ChatDTO>>("api/chat");
+
+        if (!resp.Error)
+            chats = resp.Respuesta;
+    }
+
+    void AbrirChat(long id)
+    {
+        nav.NavigateTo($"/mensajes/{id}");
+    }
+}
+
+<style>
+    .chat-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 450px;
+    }
+
+    .chat-item {
+        display: flex;
+        align-items: center;
+        background: #f9f9f9;
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        .chat-item:hover {
+            background: #ececec;
+        }
+
+    .chat-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: #007bff;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 20px;
+        margin-right: 10px;
+    }
+
+    .chat-title {
+        font-weight: bold;
+    }
+
+    .chat-last {
+        font-size: 12px;
+        color: #777;
+    }
+</style>

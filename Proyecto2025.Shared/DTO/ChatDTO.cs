@@ -18,6 +18,8 @@ namespace Proyecto2025.Shared.DTO
         public bool IsModerated { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
+        public string? UltimoMensaje { get; set; }
     }
+
 }
+
