@@ -1,94 +1,113 @@
-﻿@using System.Collections.Generic
-@using Proyecto2025.Server.Client.Pages
+﻿@inject HttpClient Http
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.SignalR.Client;
 
-<div class="notif-sidebar">
-    <div class="notif-header">
-        <h4>Notificaciones</h4>
-    </div>
-
-    <div class="notif-list">
-        @if (Notifications != null && Notifications.Any())
-        {
-            @foreach (var n in Notifications)
-            {
-                <div class="notif-item @(n.Read ? "read" : "unread")">
-                    <div class="notif-title">@n.Title</div>
-                    <div class="notif-message">@n.Message</div>
-                    <div class="notif-time">@n.Time</div>
-                </div>
-            }
-        }
-        else
-        {
-            <p class="empty">No hay notificaciones nuevas.</p>
-        }
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">Proyecto2025.Server</a>
     </div>
 </div>
 
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column">
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+@@ -44,7 +49,6 @@
+            </NavLink>
+        </div>
+
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="chat">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Chats
+@@ -80,6 +84,88 @@
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> RegUsuario (Prueba)
+            </NavLink>
+        </div>
+
+        <!-- Ícono y contador de notificaciones -->
+        <div class="nav-item px-3" style="position: relative;">
+            <NavLink class="nav-link" href="notifications">
+                <span class="oi oi-bell" aria-hidden="true"></span>
+
+                @if (pendingCount > 0)
+                {
+                    <span class="badge bg-danger"
+                          style="position:absolute; top:0; right:0; font-size:0.7rem;">
+                        @pendingCount
+                    </span>
+                }
+
+                Notificaciones
+            </NavLink>
+        </div>
+
+    </nav>
+</div>
+
+
+
 @code {
-    [Parameter]
-    public List<Principal.NotificationModel> Notifications { get; set; } = new();
+    private HubConnection? hubConnection;
+    private int pendingCount = 0;
+    private int userId = 2; // Usuario de prueba para mostrar notificaciones.
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Cargo el contador inicial desde el API
+        await LoadPendingCount();
+
+        // Creo la conexión con el Hub de notificaciones
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/notificationhub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        // Cuando llega una nueva notificación, vuelvo a consultar el contador
+        hubConnection.On("ReceiveNotification", async () =>
+        {
+            await InvokeAsync(async () =>
+            {
+                await LoadPendingCount();
+                StateHasChanged();
+            });
+        });
+
+        // Cuando alguna notificación cambia (ej: leída), actualizo contador
+        hubConnection.On("NotificationUpdated", async () =>
+        {
+            await InvokeAsync(async () =>
+            {
+                await LoadPendingCount();
+                StateHasChanged();
+            });
+        });
+
+        // Inicio la conexión con SignalR
+        await hubConnection.StartAsync();
+    }
+
+    // Consulta el API para saber cuántas notificaciones pendientes tengo
+    private async Task LoadPendingCount()
+    {
+        try
+        {
+            pendingCount = await Http.GetFromJsonAsync<int>($"api/Notification/count/{userId}");
+        }
+        catch
+        {
+            pendingCount = 0; // Si falla dejo el contador en 0 para que no rompa nada
+        }
+    }
+
+    // Libero la conexión del hub cuando el componente se destruye
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
 }
-
-<style>
-    .notif-sidebar {
-        width: 300px;
-        background: #fff;
-        border-left: 1px solid #ddd;
-        display: flex;
-        flex-direction: column;
-        animation: slideIn 0.3s ease forwards;
-    }
-
-
-    .notif-header {
-        padding: 15px;
-        border-bottom: 1px solid #ddd;
-    }
-
-        .notif-header h4 {
-            margin: 0;
-        }
-
-    .notif-list {
-        flex: 1;
-        overflow-y: auto;
-        padding: 10px;
-    }
-
-    .notif-item {
-        padding: 10px;
-        border-radius: 6px;
-        margin-bottom: 10px;
-        background: #f3f3ff;
-    }
-
-        .notif-item.unread {
-            border-left: 4px solid #7a5af8;
-        }
-
-        .notif-item.read {
-            opacity: 0.8;
-        }
-
-    .notif-title {
-        font-weight: bold;
-    }
-
-    .notif-message {
-        font-size: 13px;
-        color: #555;
-    }
-
-    .notif-time {
-        font-size: 11px;
-        color: #888;
-        text-align: right;
-    }
-
-    .empty {
-        color: #aaa;
-        text-align: center;
-        margin-top: 20px;
-    }
-</style>

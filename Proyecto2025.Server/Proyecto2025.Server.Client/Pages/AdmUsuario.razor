@@ -6,7 +6,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Administración de Usuarios</h2>
         <div>
-            <button class="btn btn-secondary me-2" @onclick="@(()=> nav.NavigateTo("/Principal"))"><i class="bi bi-download"></i> Volver </button>
+            <button class="btn btn-secondary me-2" @onclick="@(()=> nav.NavigateTo("/Chats"))"><i class="bi bi-download"></i> Volver </button>
             <button class="btn btn-primary" @onclick="@(()=> nav.NavigateTo("/registrar-user"))"><i class="bi bi-plus"></i> Añadir Usuario</button>
         </div>
     </div>
@@ -79,7 +79,7 @@
                         {
                             <button class="btn btn-outline-light btn-sm me-2" @onclick="() => ActivarUsuario(user.Id)"><i class=" bi bi-arrow-repeat"></i>Activar</button>
                         }
-                        <button class="btn btn-outline-light btn-sm me-2"><i class=" bi bi-arrow-repeat"></i> Ver chats</button>
+                        <button class="btn btn-outline-light btn-sm me-2" @onclick="@(()=> nav.NavigateTo("/Principal"))"><i class=" bi bi-arrow-repeat"></i> Ver chats</button>
                         
                     </td>
                 </tr>

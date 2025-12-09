@@ -1,0 +1,161 @@
+﻿@using Proyecto2025.Shared.DTO
+@inject HttpClient Http
+@inject NavigationManager Nav
+@using Microsoft.AspNetCore.SignalR.Client
+@inject IServiceProvider ServiceProvider
+@using System.Linq
+
+@* 
+    Este componente muestra las notificaciones del usuario y permite marcarlas como leídas.
+    También escucha las actualizaciones que vienen desde SignalR para actualizarse solo.
+*@
+
+<div class="p-3">
+    <h5>Notificaciones Pendientes</h5>
+    <hr />
+
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Mensaje</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (notifications == null)
+            {
+                <tr>
+                    <td colspan="2">Buscando...</td>
+                </tr>
+            }
+            else if (!notifications.Any(n => n.IsPending))
+            {
+                <tr>
+                    <td colspan="2">No hay notificaciones sin ver 🔔</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var notification in notifications.Where(n => n.IsPending))
+                {
+                    <tr>
+                        <td>@notification.Message</td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary"
+                                    @onclick="() => MarkAsRead(notification.Id)">
+                                Marcar como Leída
+                            </button>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private HubConnection? hubConnection;
+    private List<NotificationDTO>? notifications;
+
+    // Para probar uso el usuario 2
+    private readonly int userId = 2;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Cargo la lista inicial al entrar al componente
+        await LoadNotifications();
+
+        // Inicio la conexión a SignalR
+        if (hubConnection == null || hubConnection.State == HubConnectionState.Disconnected)
+        {
+            await InitSignalR();
+        }
+    }
+
+    // ==========================================
+    // CARGA LAS NOTIFICACIONES DESDE EL API
+    // ==========================================
+    private async Task LoadNotifications()
+    {
+        try
+        {
+            notifications = await Http.GetFromJsonAsync<List<NotificationDTO>>(
+                $"api/Notification/user/{userId}/pending");
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error cargando notificaciones: {ex.Message}");
+            notifications = new();
+        }
+    }
+
+    // ==========================================
+    // MARCAR UNA NOTIFICACIÓN COMO LEÍDA
+    // ==========================================
+    private async Task MarkAsRead(long notificationId)
+    {
+        var response = await Http.PutAsync(
+            $"api/Notification/{notificationId}/markasread",
+            null
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Cambio local para que se vea instantáneo
+            var item = notifications?.FirstOrDefault(n => n.Id == notificationId);
+            if (item != null)
+                item.IsPending = false;
+
+            StateHasChanged();
+        }
+        else
+        {
+            Console.WriteLine($"Error {response.StatusCode}: No se pudo marcar como leída.");
+        }
+    }
+
+    // ======================================================
+    // INICIALIZA SIGNALR Y REGISTRA MANEJADORES DE EVENTOS
+    // ======================================================
+    private async Task InitSignalR()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Nav.ToAbsoluteUri("/notificationhub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        // Cuando llega una notificación nueva
+        hubConnection.On<object>("ReceiveNotification", async (data) =>
+        {
+            // Refresco la lista cuando el servidor manda una nueva
+            await InvokeAsync(async () =>
+            {
+                await LoadNotifications();
+                StateHasChanged();
+            });
+        });
+
+        // Cuando se marca una como leída desde otra pestaña/dispositivo
+        hubConnection.On("NotificationUpdated", async () =>
+        {
+            await InvokeAsync(async () =>
+            {
+                await LoadNotifications();
+                StateHasChanged();
+            });
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    // Cierro correctamente la conexión cuando se destruye el componente
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection != null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+}

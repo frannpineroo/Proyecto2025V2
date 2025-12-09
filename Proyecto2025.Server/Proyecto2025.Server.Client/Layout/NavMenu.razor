@@ -1,4 +1,8 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@inject HttpClient Http
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.SignalR.Client;
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Proyecto2025.Server</a>
     </div>
@@ -80,6 +84,24 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> RegUsuario (Prueba)
             </NavLink>
         </div>
+
+        <!-- Ícono y contador de notificaciones -->
+        <div class="nav-item px-3" style="position: relative;">
+            <NavLink class="nav-link" href="notifications">
+                <span class="oi oi-bell" aria-hidden="true"></span>
+
+                @if (pendingCount > 0)
+                {
+                    <span class="badge bg-danger"
+                          style="position:absolute; top:0; right:0; font-size:0.7rem;">
+                        @pendingCount
+                    </span>
+                }
+
+                Notificaciones
+            </NavLink>
+        </div>
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="Chats">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Chats
@@ -93,3 +115,66 @@
     </nav>
 </div>
         
+
+@code {
+    private HubConnection? hubConnection;
+    private int pendingCount = 0;
+    private int userId = 2; // Usuario de prueba para mostrar notificaciones.
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Cargo el contador inicial desde el API
+        await LoadPendingCount();
+
+        // Creo la conexión con el Hub de notificaciones
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/notificationhub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        // Cuando llega una nueva notificación, vuelvo a consultar el contador
+        hubConnection.On("ReceiveNotification", async () =>
+        {
+            await InvokeAsync(async () =>
+            {
+                await LoadPendingCount();
+                StateHasChanged();
+            });
+        });
+
+        // Cuando alguna notificación cambia (ej: leída), actualizo contador
+        hubConnection.On("NotificationUpdated", async () =>
+        {
+            await InvokeAsync(async () =>
+            {
+                await LoadPendingCount();
+                StateHasChanged();
+            });
+        });
+
+        // Inicio la conexión con SignalR
+        await hubConnection.StartAsync();
+    }
+
+    // Consulta el API para saber cuántas notificaciones pendientes tengo
+    private async Task LoadPendingCount()
+    {
+        try
+        {
+            pendingCount = await Http.GetFromJsonAsync<int>($"api/Notification/count/{userId}");
+        }
+        catch
+        {
+            pendingCount = 0; // Si falla dejo el contador en 0 para que no rompa nada
+        }
+    }
+
+    // Libero la conexión del hub cuando el componente se destruye
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+}
