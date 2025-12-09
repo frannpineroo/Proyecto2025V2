@@ -1,15 +1,27 @@
 ﻿
 @page "/chat-sidebar"
 @inject IChatServicio chatServicio
+@inject NavigationManager nav
 @using Proyecto2025.Shared.DTO
 
 <div class="sidebar">
     <div class="search-box">
 
-        <form @onsubmit="BuscarChats">
-            <input @bind= "filtro" placeholder="Buscar por nombre..." class="form-control" />
-            <button type="submit" class="btn btn-primary mt-2" >Buscar</button>
-        </form>
+        <div>
+            <input @bind="filtro" class="form-control" placeholder="Buscar por nombre..." />
+            <button class="btn btn-primary mt-2" @onclick="BuscarChats">
+                Buscar
+            </button>
+            <button class="btn btn-primary mt-2" @onclick="CrearChat">
+                crear
+            </button>
+            <button class="btn btn-primary mt-2" @onclick="CrearGrupo">
+                crear grupo
+            </button>
+
+
+        </div>
+
 
         
         @if (listaChats != null)
@@ -33,57 +45,146 @@
         <h5>CHATS PRIVADOS</h5>
         @foreach (var chat in FilteredPrivateChats)
         {
-            <div class="chat-item @(chat.Id == selectedChatId ? "active" : "")"
-            @onclick="() => EnterChat(chat.Id)">
-                <span class="avatar">@GetInitials(chat.Name)</span>
-                <div class="chat-info">
-                    <p class="name">@chat.Name</p>
-                    <p class="preview">Chat privado</p>
+            <div class="chat-item @(chat.Id == selectedChatId ? "active" : "") d-flex justify-content-between align-items-start"
+                 @onclick="() => EnterChat(chat.Id)">
+
+                <div class="d-flex align-items-center">
+                    <span class="avatar">@GetInitials(chat.Name)</span>
+                    <div class="chat-info ms-2">
+                        <p class="name">@chat.Name</p>
+                        <p class="preview">Chat privado</p>
+                    </div>
                 </div>
+
+                <!-- Botón tres puntitos -->
+                <div class="position-relative" @onclick:stopPropagation>
+                    <button class="btn btn-sm btn-light"
+                            @onclick="() => ToggleMenu(chat.Id)">
+                        ⋮
+                    </button>
+
+                    @if (menuChatId == chat.Id)
+                    {
+                        <div class="dropdown-menu show" style="position:absolute; right:0; z-index:1000;">
+                            <button class="dropdown-item text-danger"
+                                    @onclick="() => EliminarChat(chat.Id)">
+                                Eliminar
+                            </button>
+                        </div>
+                    }
+                </div>
+
             </div>
         }
     </div>
+
 
     <div class="chat-section">
         <h5>CHATS GRUPALES</h5>
         @foreach (var chat in FilteredGroupChats)
         {
-            <div class="chat-item @(chat.Id == selectedChatId ? "active" : "")"
-            @onclick="() => EnterChat(chat.Id)">
-                <span class="avatar">@GetInitials(chat.Name)</span>
-                <div class="chat-info">
-                    <p class="name">@chat.Name</p>
-                    <p class="preview">Chat grupal</p>
+            <div class="chat-item @(chat.Id == selectedChatId ? "active" : "") d-flex justify-content-between align-items-start"
+                 @onclick="() => EnterChat(chat.Id)">
+
+                <div class="d-flex align-items-center">
+                    <span class="avatar">@GetInitials(chat.Name)</span>
+                    <div class="chat-info ms-2">
+                        <p class="name">@chat.Name</p>
+                        <p class="preview">Chat grupal</p>
+                    </div>
                 </div>
+
+                <div class="position-relative" @onclick:stopPropagation>
+                    <button class="btn btn-sm btn-light"
+                            @onclick="() => ToggleMenu(chat.Id)">
+                        ⋮
+                    </button>
+
+                    @if (menuChatId == chat.Id)
+                    {
+                        <div class="dropdown-menu show" style="position:absolute; right:0; z-index:1000;">
+                            <button class="dropdown-item text-danger"
+                                    @onclick="() => EliminarChat(chat.Id)">
+                                Eliminar
+                            </button>
+                        </div>
+                    }
+                </div>
+
             </div>
         }
+
+            @* @foreach (var m in Mensajes)
+            {
+                <div class="message">
+                    <b>@m.SenderName</b>   <!-- usuario real -->
+                    <p>@m.Content</p>      <!-- mensaje real -->
+                    <small>@m.SentAt.ToString("HH:mm")</small>
+                </div>
+
+            @if (selectedChatId != 0)
+            {
+                <div class="chat-input-bar">
+                    <input class="form-control"
+                           placeholder="Escribe un mensaje..."
+                           @bind="nuevo.Content" />
+
+                    <button class="btn btn-success"
+                            @onclick="EnviarMensaje">
+                        ➤
+                    </button>
+                </div>
+            } *@
+
+        
     </div>
 </div>
 
 @code {
+
+    
+    [Parameter] public EventCallback<long> OnChatSelected { get; set; }
+
     private long selectedChatId;
     private string searchText = string.Empty;
     long id = 1;
-
+    private CrearMensajeDTO nuevo = new();
+    private List<VerMensajesDTO> Mensajes = new();
     private List<ListaChatDTO> Chats = new();
     private List<ListaChatDTO> ChatsOriginal = new();
     private List<ListaChatDTO>? listaChats;
 
     private string filtro = string.Empty; 
 
+    private long? menuChatId = null;
+
+    private void ToggleMenu(long chatId)
+    {
+        if (menuChatId == chatId)
+            menuChatId = null;
+        else
+            menuChatId = chatId;
+    }
+
+
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         await LoadChats();
     }
 
     private async Task LoadChats()
     {
-        var resultado = await chatServicio.GetEsAsync<List<ListaChatDTO>>($"api/chat/{id}/chats");
+        var resultado = await chatServicio.GetEsAsync<List<ListaChatDTO>>($"api/Chat");
 
         if (!resultado.Error && resultado.Respuesta is not null)
         {
-            ChatsOriginal = resultado.Respuesta;
-            Chats = new List<ListaChatDTO>(ChatsOriginal);
+            //listaChats = resultado.Respuesta;
+            Chats = resultado.Respuesta
+            .GroupBy(c => c.Id)
+            .Select(g => g.First())
+            .ToList();
+            //Chats = new List<ListaChatDTO>(ChatsOriginal);
         }
         else
         {
@@ -105,11 +206,13 @@
             || chat.Id.ToString().Contains(searchText);
     }
 
-    private void EnterChat(long chatId)
+    private async Task EnterChat(long chatId)
     {
+        Console.WriteLine($" Entrando al chat {chatId}");
         selectedChatId = chatId;
-        // NavigationManager.NavigateTo($"/chat/{chatId}");
+        await OnChatSelected.InvokeAsync(chatId); // esto conecta ambos componentes
     }
+
 
     private string GetInitials(string name)
     {
@@ -119,14 +222,75 @@
         return string.Concat(parts[0][0], parts[1][0]);
     }
 
+    private async Task EnviarMensaje()
+    {
+        nuevo.ChatId = selectedChatId;
+        nuevo.SenderId = 1; // o el usuario logueado
+
+        await chatServicio.Post<CrearMensajeDTO, object>("api/message", nuevo);
+
+        // await CargarMensajes(selectedChatId);
+        // nuevo.Content = "";
+    }
+
+
+    // private async Task CargarMensajes(long chatId)
+    // {
+    //     Console.WriteLine($"Cargando mensajes para chat: {chatId}");
+
+    //     var r = await chatServicio
+    //         .GetEsAsync<List<VerMensajesDTO>>($"api/message/chat/{chatId}");
+
+    //     if (r.Error)
+    //     {
+    //         Console.WriteLine(" Error al traer mensajes");
+    //     }
+    //     else if (r.Respuesta == null)
+    //     {
+    //         Console.WriteLine(" Respuesta NULL");
+    //     }
+    //     else
+    //     {
+    //         Console.WriteLine($" Mensajes recibidos: {r.Respuesta.Count}");
+    //         Mensajes = r.Respuesta;
+    //     }
+    // }
+
+
+
+    private async Task Ocultar(int id)
+    {
+        await chatServicio.Post<OcultarMensajeDTO, object>("api/message/ocultar",
+            new OcultarMensajeDTO { MensajeId = id });
+
+        // await CargarMensajes(selectedChatId);
+    }
+
+
+
+    private async Task CrearChat()
+    {
+        nav.NavigateTo("/chat/crear");
+    }
+
+    private async Task CrearGrupo()
+    {
+        nav.NavigateTo("/chatmiembro/crear");
+    }
+
     public async Task BuscarChats()
     {
-        try {
+        try 
+        {
+            Console.WriteLine($" Buscando: '{filtro}'");
             var resultado = await chatServicio.GetEsAsync<List<ListaChatDTO>>($"api/chat/{id}/{filtro}");
 
             if (!resultado.Error && resultado.Respuesta is not null)
             {
-                listaChats = resultado.Respuesta;
+                Chats = resultado.Respuesta
+                .GroupBy(c => c.Id)
+                .Select(g => g.First())
+                .ToList();
             }
             else
             {
@@ -138,13 +302,27 @@
             Console.WriteLine("ERROR: " + e.Message);
         }
     }
+
+    private async Task EliminarChat(long chatId)
+    {
+        var resultado = await chatServicio.Delete($"api/Chat/{chatId}");
+
+        if (!resultado.Error)
+        {
+            Chats = Chats.Where(c => c.Id != chatId).ToList();
+            menuChatId = null;
+        }
+        else
+        {
+            Console.WriteLine("Error al eliminar el chat");
+        }
+    }
+
+
 }
 
-@* implementar las demas cosas q tenia en chat gpt en todo caso de q sirva *@
 
-
-
-<style>
+@* <style>
     .sidebar {
         width: 280px;
         background: #fff;
@@ -223,9 +401,140 @@
         padding: 4px 8px;
     }
 </style>
+ *@
+
+<style>
+    .sidebar {
+        width: 320px;
+        height: 100vh;
+        background-color: #111b21;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid #222;
+    }
+
+    .search-box {
+        padding: 15px;
+        background-color: #202c33;
+        border-bottom: 1px solid #2a3942;
+    }
+
+        .search-box input {
+            background-color: #2a3942;
+            border: none;
+            color: white;
+        }
+
+            .search-box input::placeholder {
+                color: #aaa;
+            }
+
+    .chat-section h5 {
+        margin: 10px 15px;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        color: #8696a0;
+    }
+
+    .chat-item {
+        padding: 12px 15px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+        .chat-item:hover {
+            background-color: #2a3942;
+        }
+
+        .chat-item.active {
+            background-color: #005c4b;
+        }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        background-color: #00a884;
+        color: #111;
+        font-weight: bold;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+    }
+
+    .name {
+        font-weight: 500;
+        color: white;
+    }
+
+    .preview {
+        font-size: 0.8rem;
+        color: #aebac1;
+    }
+
+    .message {
+        background-color: #202c33;
+        margin: 5px 10px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+    }
+
+    .dropdown-menu {
+        background-color: #2a3942;
+        border-radius: 6px;
+    }
+
+    .dropdown-item {
+        color: white;
+    }
+
+        .dropdown-item:hover {
+            background-color: #005c4b;
+        }
 
 
+    /* Scroll interno */
+    .chat-section {
+        flex: 1;
+        overflow-y: auto;
+    }
 
-        @*boton para ingresar usuarios y boton para buscar usuarios para chatear y aplicar las funciones de entrar en un 
-        chat diferente
-        y emplear q se busquen por id por cada chat y por chat grupal*@ 
+        /* Smooth scroll */
+        .chat-section::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-section::-webkit-scrollbar-thumb {
+            background-color: #555;
+            border-radius: 10px;
+        }
+
+        .chat-section::-webkit-scrollbar-track {
+            background-color: transparent;
+        }
+
+    .chat-resultados {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .search-box {
+        flex-shrink: 0;
+    }
+
+    .chat-input-bar {
+        display: flex;
+        gap: 10px;
+        padding: 10px;
+        background-color: #202c33;
+        border-top: 1px solid #2a3942;
+        position: sticky;
+        bottom: 0;
+    }
+
+</style>

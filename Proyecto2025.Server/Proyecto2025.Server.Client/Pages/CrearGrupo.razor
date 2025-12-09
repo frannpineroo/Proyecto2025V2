@@ -518,7 +518,7 @@
 }
 </style> *@
 
-
+@*
 @page "/crearGrupo"
 @inject IChatMemberServicio chatMemberServicio
 @inject HttpClient http
@@ -676,7 +676,7 @@
             }
         </div>
 
-        @*AGREGADO POR GABY*@
+        AGREGADO POR GABY
         <div class="search-box">
 
             <form @onsubmit="BuscarUsuarios1">
@@ -1070,6 +1070,709 @@
     por otra parte verificar cambiar ciertas partes de este codigo para q se creen los miembros desde la page esta, o desde la BD
     tambien verificar q partes del codigo este nuevo no van y solo dejar los q si servirian
 *@
+
+@page "/crearGrupo"
+@inject IChatMemberServicio chatMemberServicio
+@inject HttpClient http
+
+<div class="page-container">
+
+    <!-- COLUMNA 1: CREAR / EDITAR GRUPO (tu UI base mejorada) -->
+    <div class="card create-card">
+        <h2>@(IsEditing ? "Editar Grupo" : "Crear Grupo Privado")</h2>
+
+        <div class="form-group">
+            <label>Nombre del grupo organizacional o empresarial</label>
+            <input type="text" placeholder="Ingresa el nombre del grupo" @bind="GroupName" />
+        </div>
+
+        <div class="form-group">
+            <label>Descripción</label>
+            <textarea placeholder="Describe el propósito del grupo" @bind="Description"></textarea>
+        </div>
+
+        <div class="form-group toggle-group">
+            <label>Modo Moderado</label>
+            <label class="switch">
+                <input type="checkbox" @bind="IsModerated" />
+                <span class="slider"></span>
+            </label>
+            <small>Activar para que los mensajes requieran aprobación</small>
+        </div>
+
+        <div class="form-group">
+            <label>Seleccionar chat existente (para editar/administrar)</label>
+
+            <!-- Tabla paginada para chats (en lugar del select) -->
+            <div class="chats-table">
+                @if (Chats == null || Chats.Count == 0)
+                {
+                    <div>No hay chats disponibles.</div>
+                }
+                else
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Nombre</th>
+                                <th>Es Grupo</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in ChatsPaged)
+                            {
+                                <tr class="@(SelectedChatId == c.Id ? "selected-row" : "")">
+                                    <td>@c.Id</td>
+                                    <td>@c.Name</td>
+                                    <td>@(c.IsGroup ? "Sí" : "No")</td>
+                                    <td>
+                                        <button @onclick="() => SelectChat(c.Id)">✏️ Editar</button>
+                                        <button @onclick="() => LoadChatMembers(c.Id)">👥 Ver miembros</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                   @*  <div class="pagination">
+                        <button @onclick="ChatsPrevPage" disabled="@(ChatsPage == 1)">«</button>
+                        @for (int p = 1; p <= ChatsTotalPages; p++)
+                        {
+                            <button class="@(p == ChatsPage ? "active" : "")" @onclick="() => ChatsGoToPage(p)">@p</button>
+                        }
+                        <button @onclick="ChatsNextPage" disabled="@(ChatsPage == ChatsTotalPages)">»</button>
+                    </div> *@
+                }
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn-cancelar" @onclick="ResetForm">Cancelar</button>
+            <button class="btn-guardar" @onclick="GuardarGrupo">@((IsEditing) ? "Guardar Cambios" : "Crear Grupo")</button>
+        </div>
+
+        <hr />
+
+        @* <h4>Miembros seleccionados (temporal)</h4>
+        <div class="user-list small">
+            @foreach (var s in SelectedUsersForNewGroup)
+            {
+                <div class="user-item">
+                    <div class="avatar">@s.Initials</div>
+                    <div class="user-info">
+                        <div class="name">@s.FullName</div>
+                        <div class="email">@s.Email</div>
+                    </div>
+                    <select @bind="s.Role">
+                        <option value="Usuario">Usuario</option>
+                        <option value="Moderador">Moderador</option>
+                        <option value="Administrador">Administrador</option>
+                    </select>
+                    <button @onclick="() => RemoveSelectedUser(s)">Quitar</button>
+                </div>
+            }
+        </div> *@
+    </div>
+
+    <!-- COLUMNA 2: MIEMBROS DEL CHAT SELECCIONADO -->
+    @* <div class="card members-card">
+        <h3>Miembros del chat seleccionado</h3>
+
+        <div class="form-group">
+            <input type="text" placeholder="Buscar miembros por ID, UserId..." @bind="SearchMemberTerm" />
+            <button @onclick="FiltrarMiembros">Filtrar</button>
+            <button @onclick="CargarMiembros">Recargar miembros</button>
+        </div>
+
+        <div class="members-list">
+            @if (Miembros == null || Miembros.Count == 0)
+            {
+                <div class="empty">No hay miembros para este chat.</div>
+            }
+            else
+            {
+                @foreach (var m in MiembrosPaged)
+                {
+                    <div class="member-item">
+                        <div class="left">
+                            <div><b>MemberId:</b> @m.Id</div>
+                            <div><b>UserId:</b> @m.UserId</div>
+                            <div><b>Joined:</b> @m.JoinedAt.ToLocalTime().ToString("g")</div>
+                        </div>
+                        <div class="center">
+                            <label>
+                                <b>Moderador</b>
+                                <input type="checkbox" checked="@m.IsModerator" @onchange="(e) => ToggleModerator(m, e)" />
+                            </label>
+                            <label>
+                                <b>Puede escribir</b>
+                                <input type="checkbox" checked="@m.CanWrite" @onchange="(e) => ToggleCanWrite(m, e)" />
+                            </label>
+                        </div>
+                        <div class="right">
+                            <button @onclick="() => QuitarMiembro(m.Id)">🗑️ Quitar</button>
+                            <button @onclick="() => EditMemberOpen(m.Id)">✍️ Editar</button>
+                        </div>
+                    </div>
+                }
+            }
+
+            <!-- paginación miembros -->
+            @if (Miembros != null && Miembros.Count > 0)
+            {
+                <div class="pagination">
+                    <button @onclick="MembersPrevPage" disabled="@(MembersPage == 1)">«</button>
+                    @for (int p = 1; p <= MembersTotalPages; p++)
+                    {
+                        <button class="@(p == MembersPage ? "active" : "")" @onclick="() => MembersGoToPage(p)">@p</button>
+                    }
+                    <button @onclick="MembersNextPage" disabled="@(MembersPage == MembersTotalPages)">»</button>
+                </div>
+            }
+        </div>
+    </div> *@
+
+    @* <!-- COLUMNA 3: BUSCAR USUARIOS Y AGREGAR AL GRUPO -->
+    <div class="card users-card">
+        <h3>Buscar usuarios para agregar</h3>
+
+        <div class="form-group">
+            <input type="text" placeholder="Buscar por ID, nombre o email..." @bind="SearchUserTerm" />
+            <div class="search-actions">
+                <button @onclick="BuscarUsuarios">Buscar</button>
+                <button @onclick="CargarTodosUsuarios">Cargar todos</button>
+            </div>
+        </div>
+
+        <div class="user-list">
+            @if (UsuariosFiltrados == null || UsuariosFiltrados.Count == 0)
+            {
+                <div class="empty">No se encontraron usuarios.</div>
+            }
+            else
+            {
+                @foreach (var u in UsersPaged)
+                {
+                    <div class="user-item">
+                        <div class="avatar">@u.Initials</div>
+                        <div class="user-info">
+                            <div class="name">@u.FullName</div>
+                            <div class="email">@u.Email</div>
+                            <div class="sub">Id: @u.Id</div>
+                        </div>
+
+                        <div class="controls">
+                            <select @bind="u.SelectedRole">
+                                <option value="Usuario">Usuario</option>
+                                <option value="Moderador">Moderador</option>
+                                <option value="Administrador">Administrador</option>
+                            </select>
+
+                            <button @onclick="() => AddToSelectedForNewGroup(u)">Seleccionar</button>
+
+                            <button disabled="@(SelectedChatId == 0)" @onclick="() => AgregarMiembroExistente(u)">Agregar al chat</button>
+                        </div>
+                    </div>
+                }
+            }
+        </div> *@
+
+       @*  <!-- paginación usuarios -->
+        @if (UsuariosFiltrados != null && UsuariosFiltrados.Count > 0)
+        {
+            <div class="pagination">
+                <button @onclick="UsersPrevPage" disabled="@(UsersPage == 1)">«</button>
+                @for (int p = 1; p <= UsersTotalPages; p++)
+                {
+                    <button class="@(p == UsersPage ? "active" : "")" @onclick="() => UsersGoToPage(p)">@p</button>
+                }
+                <button @onclick="UsersNextPage" disabled="@(UsersPage == UsersTotalPages)">»</button>
+            </div>
+        } *@
+
+        @*AGREGADO POR GABY*@
+        <div class="search-box">
+
+            <form @onsubmit="BuscarUsuarios1">
+                <input @bind="filtro" placeholder="Buscar por nombre o email..." class="form-control" />
+                <button type="submit" class="btn btn-primary mt-2">Buscar</button>
+            </form>
+
+            @if (listaUsuarios != null)
+            {
+
+                <table class="table">
+
+                    <thead>
+                        <tr>
+                            <th>Usuarios encontrados</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var u in listaUsuarios)
+                        {
+                            <tr>
+                                <td>@u.FirstName @u.LastName</td>
+
+                                <td>
+                                    <form asp-action="CrearChat" method="post">
+                                        <input type="hidden" name="usuarioActualId" value="" />
+                                        <input type="hidden" name="usuarioSeleccionadoId" value="@u.Id" />
+                                        <button type="button" class="btn btn-success">Crear chat</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+    </div>
+@* </div> *@
+
+
+@code {
+    // ---- Estado de UI ----
+    private bool IsEditing = false;
+
+    // formulario crear/editar
+    private string GroupName = "";
+    private string Description = "";
+    private bool IsModerated = false;
+
+    // chats disponibles (lista completa)
+    private List<ListaChatDTO> Chats = new List<ListaChatDTO>();
+    // paginación chats
+    private int ChatsPage = 1;
+    private int ChatsPageSize = 6; // ajusta a lo que quieras mostrar
+    private int ChatsTotalPages => (int)Math.Ceiling((double)(Chats?.Count ?? 0) / ChatsPageSize);
+    private IEnumerable<ListaChatDTO> ChatsPaged => Chats.Skip((ChatsPage - 1) * ChatsPageSize).Take(ChatsPageSize);
+
+    private long SelectedChatId = 0;
+
+    // usuarios (traidos desde API)
+    private List<ListaUsuarioDTO> Usuarios = new();
+    private List<ListaUsuarioDTO> UsuariosFiltrados = new();
+    private string SearchUserTerm = "";
+
+    // // paginación usuarios
+    // private int UsersPage = 1;
+    // private int UsersPageSize = 6;
+    // private int UsersTotalPages => (int)Math.Ceiling((double)(UsuariosFiltrados?.Count ?? 0) / UsersPageSize);
+    // private IEnumerable<ListaUsuarioDTO> UsersPaged => UsuariosFiltrados.Skip((UsersPage - 1) * UsersPageSize).Take(UsersPageSize);
+
+    // miembros del chat seleccionado
+    private List<ListaChatMemberDTO> Miembros = new();
+    private string SearchMemberTerm = "";
+
+    // // paginación miembros
+    // private int MembersPage = 1;
+    // private int MembersPageSize = 6;
+    // private int MembersTotalPages => (int)Math.Ceiling((double)(Miembros?.Count ?? 0) / MembersPageSize);
+    // private IEnumerable<ListaChatMemberDTO> MiembrosPaged => MiembrosFilteredList.Skip((MembersPage - 1) * MembersPageSize).Take(MembersPageSize);
+
+    // Selected users temporales
+    private List<SelectedUserUI> SelectedUsersForNewGroup = new();
+
+    // ---------------- DTOs/Modelos locales (si tu API usa otros nombres, ajustá) ----
+    public class ListaChatDTO
+    {
+        public long Id { get; set; }
+        public string Name { get; set; } = "";
+        public bool IsGroup { get; set; } = true;
+    }
+
+    public class ListaUsuarioDTO
+    {
+        public long Id { get; set; }
+        public string FirstName { get; set; } = "";
+        public string LastName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public long RoleId { get; set; } = 1;
+
+        // UI helpers
+        public string FullName => $"{FirstName} {LastName}";
+        public string Initials => string.Join("", FullName.Split(' ').Where(s => s.Length > 0).Select(s => s[0])).ToUpper();
+        public string SelectedRole { get; set; } = "Usuario";
+    }
+
+    public class SelectedUserUI
+    {
+        public long Id { get; set; } // si viene del API
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Role { get; set; } = "Usuario";
+        public string Initials => string.Join("", FullName.Split(' ').Where(s => s.Length > 0).Select(s => s[0])).ToUpper();
+    }
+
+    // Asumimos la estructura que ya tenías para ListaChatMemberDTO
+    public class ListaChatMemberDTO
+    {
+        public long Id { get; set; }
+        public long ChatId { get; set; }
+        public long UserId { get; set; }
+        public bool IsModerator { get; set; } = false;
+        public bool CanWrite { get; set; } = true;
+        public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
+    }
+
+    // // para el filtro y páginas, necesitamos un listado filtrado
+    // private IEnumerable<ListaChatMemberDTO> MiembrosFilteredList =>
+    //     Miembros.Where(m =>
+    //         string.IsNullOrWhiteSpace(SearchMemberTerm) ||
+    //         m.Id.ToString().Contains(SearchMemberTerm, StringComparison.OrdinalIgnoreCase) ||
+    //         m.UserId.ToString().Contains(SearchMemberTerm, StringComparison.OrdinalIgnoreCase)
+    //     );
+
+    // --------------- CARGAS INICIALES ----------------
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarChats();
+        // no cargamos miembros hasta seleccionar chat
+    }
+
+    private async Task CargarChats()
+    {
+        try
+        {
+            var res = await http.GetFromJsonAsync<List<ListaChatDTO>>("api/chat/listar");
+            if (res != null) Chats = res;
+            // asegurar pagina actual válida
+            if (ChatsPage > ChatsTotalPages) ChatsPage = Math.Max(1, ChatsTotalPages);
+        }
+        catch
+        {
+            Chats = new List<ListaChatDTO>();
+        }
+    }
+
+    // // navegacion paginas chats
+    // private void ChatsPrevPage() { if (ChatsPage > 1) ChatsPage--; }
+    // private void ChatsNextPage() { if (ChatsPage < ChatsTotalPages) ChatsPage++; }
+    // private void ChatsGoToPage(int p) { ChatsPage = Math.Clamp(p, 1, Math.Max(1, ChatsTotalPages)); }
+
+    private void SelectChat(long id)
+    {
+        SelectedChatId = id;
+        IsEditing = true;
+        // intentamos cargar datos del chat si tenés endpoint (opcional)
+        // reload members
+        _ = CargarMiembros();
+    }
+
+    private async Task LoadChatMembers(long chatId)
+    {
+        SelectedChatId = chatId;
+        await CargarMiembros();
+    }
+
+    // cuando seleccionan un chat (fix: no bind + onchange)
+    private async Task OnChatSelected(ChangeEventArgs e)
+    {
+        if (e?.Value == null) { SelectedChatId = 0; IsEditing = false; Miembros.Clear(); return; }
+
+        if (long.TryParse(e.Value.ToString(), out var id))
+        {
+            SelectedChatId = id;
+            IsEditing = true;
+            await CargarMiembros();
+        }
+        else
+        {
+            SelectedChatId = 0;
+            Miembros.Clear();
+            IsEditing = false;
+        }
+    }
+
+    // --------------- MIEMBROS ----------------
+    private async Task CargarMiembros()
+    {
+        if (SelectedChatId == 0) { Miembros = new(); return; }
+
+        var resp = await chatMemberServicio.Get<List<ListaChatMemberDTO>>($"api/ChatMember");
+        if (!resp.Error && resp.Respuesta != null)
+        {
+            Miembros = resp.Respuesta;
+            // reset members pagination if needed
+            // MembersPage = 1;
+        }
+        else
+        {
+            Miembros = new();
+        }
+    }
+
+    private void FiltrarMiembros()
+    {
+        // reseteo a página 1 cuando filtras
+        // MembersPage = 1;
+        StateHasChanged();
+    }
+
+    private async Task QuitarMiembro(long memberId)
+    {
+        if (memberId == 0) return;
+
+        await chatMemberServicio.Delete($"api/chatmember/eliminar/{memberId}");
+        await CargarMiembros();
+    }
+
+    private async Task ToggleModerator(ListaChatMemberDTO m, ChangeEventArgs e)
+    {
+        var nuevo = e?.Value?.ToString() == "true";
+        m.IsModerator = nuevo;
+
+        // Crear DTO de actualización
+        var dtoActualizar = new ChatMemberDTO
+        {
+            Id = m.Id,
+            ChatId = m.ChatId,
+            UserId = m.UserId,
+            IsModerator = m.IsModerator,
+            CanWrite = m.CanWrite,
+            JoinedAt = m.JoinedAt
+        };
+
+        // Si tu backend espera PUT usar Put; aquí uso HttpClient.PutAsJsonAsync
+        // Ajustá la ruta si tu API espera PUT en api/chatmember/actualizar o api/chatmember/{id}
+        try
+        {
+            var putResp = await http.PutAsJsonAsync("api/chatmember/actualizar", dtoActualizar);
+            // si querés manejar la respuesta, lo podés deserializar
+        }
+        catch
+        {
+            // fallback: intentar con el servicio
+            await chatMemberServicio.Post<ChatMemberDTO, object>("api/chatmember/actualizar", dtoActualizar);
+        }
+
+        await CargarMiembros();
+    }
+
+    private async Task ToggleCanWrite(ListaChatMemberDTO m, ChangeEventArgs e)
+    {
+        var nuevo = e?.Value?.ToString() == "true";
+        m.CanWrite = nuevo;
+
+        var dtoActualizar = new ChatMemberDTO
+        {
+            Id = m.Id,
+            ChatId = m.ChatId,
+            UserId = m.UserId,
+            IsModerator = m.IsModerator,
+            CanWrite = m.CanWrite,
+            JoinedAt = m.JoinedAt
+        };
+
+        try
+        {
+            var putResp = await http.PutAsJsonAsync("api/chatmember/actualizar", dtoActualizar);
+        }
+        catch
+        {
+            await chatMemberServicio.Post<ChatMemberDTO, object>("api/chatmember/actualizar", dtoActualizar);
+        }
+
+        await CargarMiembros();
+    }
+
+    // ejemplo para abrir edición (podés implementar modal si querés)
+    private void EditMemberOpen(long memberId)
+    {
+        // implementar si querés abrir diálogo de edición de propiedades del miembro
+    }
+
+    // --------------- USUARIOS / BUSQUEDA ----------------
+    private async Task CargarTodosUsuarios()
+    {
+        try
+        {
+            var res = await http.GetFromJsonAsync<List<ListaUsuarioDTO>>("api/usuario/listar");
+            if (res != null)
+            {
+                Usuarios = res;
+                UsuariosFiltrados = Usuarios;
+                // UsersPage = 1;
+            }
+        }
+        catch
+        {
+            Usuarios = new();
+            UsuariosFiltrados = new();
+        }
+    }
+
+    private async Task BuscarUsuarios()
+    {
+        // si term vacío, solo cargamos todos
+        if (string.IsNullOrWhiteSpace(SearchUserTerm))
+        {
+            await CargarTodosUsuarios();
+            return;
+        }
+
+        try
+        {
+            var maybe = await http.GetFromJsonAsync<List<ListaUsuarioDTO>>($"api/usuario/buscar?term={Uri.EscapeDataString(SearchUserTerm)}");
+            if (maybe != null && maybe.Count > 0)
+            {
+                UsuariosFiltrados = maybe;
+                // UsersPage = 1;
+                return;
+            }
+        }
+        catch { /* ignore */ }
+
+        await CargarTodosUsuarios();
+        var t = SearchUserTerm.Trim();
+        UsuariosFiltrados = Usuarios
+            .Where(u =>
+                u.Id.ToString().Equals(t, StringComparison.OrdinalIgnoreCase) ||
+                u.FirstName.Contains(t, StringComparison.OrdinalIgnoreCase) ||
+                u.LastName.Contains(t, StringComparison.OrdinalIgnoreCase) ||
+                u.Email.Contains(t, StringComparison.OrdinalIgnoreCase)
+            )
+            .ToList();
+
+        //UsersPage = 1;
+    }
+
+    // // paginación usuarios
+    // private void UsersPrevPage() { if (UsersPage > 1) UsersPage--; }
+    // private void UsersNextPage() { if (UsersPage < UsersTotalPages) UsersPage++; }
+    // private void UsersGoToPage(int p) { UsersPage = Math.Clamp(p, 1, Math.Max(1, UsersTotalPages)); }
+
+    // // paginación miembros
+    // private void MembersPrevPage() { if (MembersPage > 1) MembersPage--; }
+    // private void MembersNextPage() { if (MembersPage < MembersTotalPages) MembersPage++; }
+    // private void MembersGoToPage(int p) { MembersPage = Math.Clamp(p, 1, Math.Max(1, MembersTotalPages)); }
+
+    // agregar usuario a lista temporal para crear grupo
+    private void AddToSelectedForNewGroup(ListaUsuarioDTO u)
+    {
+        if (SelectedUsersForNewGroup.Any(x => x.Id == u.Id)) return;
+        SelectedUsersForNewGroup.Add(new SelectedUserUI { Id = u.Id, FullName = u.FullName, Email = u.Email, Role = u.SelectedRole });
+    }
+
+    private void RemoveSelectedUser(SelectedUserUI s)
+    {
+        SelectedUsersForNewGroup.Remove(s);
+    }
+
+    // --------------- CREAR / GUARDAR GRUPO ----------------
+    private async Task GuardarGrupo()
+    {
+        var crearDto = new
+        {
+            Name = GroupName,
+            Description = Description,
+            IsModerated = IsModerated,
+            IsGroup = true
+        };
+
+        if (IsEditing && SelectedChatId != 0)
+        {
+            await http.PutAsJsonAsync("api/chat/actualizar", new { Id = SelectedChatId, Name = GroupName, Description = Description, IsModerated = IsModerated });
+            await CargarChats();
+            return;
+        }
+
+        var resp = await http.PostAsJsonAsync("api/chat/crear", crearDto);
+        if (resp.IsSuccessStatusCode)
+        {
+            var creado = await resp.Content.ReadFromJsonAsync<ListaChatDTO>();
+            long nuevoChatId = creado?.Id ?? 0;
+
+            foreach (var su in SelectedUsersForNewGroup)
+            {
+                if (nuevoChatId == 0) continue;
+                var member = new ChatMemberDTO
+                {
+                    ChatId = nuevoChatId,
+                    UserId = su.Id,
+                    IsModerator = su.Role == "Moderador" || su.Role == "Administrador",
+                    CanWrite = true
+                };
+                await chatMemberServicio.Post<ChatMemberDTO, object>("api/chatmember/crear", member);
+            }
+
+            ResetForm();
+            await CargarChats();
+        }
+        else
+        {
+            // log error
+        }
+    }
+
+    private void ResetForm()
+    {
+        GroupName = "";
+        Description = "";
+        IsModerated = false;
+        SelectedUsersForNewGroup.Clear();
+        SearchUserTerm = "";
+        IsEditing = false;
+        SelectedChatId = 0;
+    }
+
+    // --------------- AGREGAR MIEMBRO A CHAT EXISTENTE ----------------
+    // private async Task AgregarMiembroExistente(ListaUsuarioDTO u)
+    // {
+    //     if (SelectedChatId == 0) return;
+
+    //     var member = new ChatMemberDTO
+    //     {
+    //         ChatId = SelectedChatId,
+    //         UserId = u.Id,
+    //         IsModerator = u.SelectedRole == "Moderador" || u.SelectedRole == "Administrador",
+    //         CanWrite = true
+    //     };
+
+    //     await chatMemberServicio.Post<ChatMemberDTO, object>("api/chatmember/crear", member);
+    //     await CargarMiembros();
+    // }
+
+    //Agregado por GABY
+    private string filtro = string.Empty;
+    private List<ListaUsuarioDTO>? listaUsuarios;
+
+    public async Task BuscarUsuarios1()
+    {
+        var resultado = await chatMemberServicio.Get<List<ListaUsuarioDTO>>($"api/Usuario/{filtro}");
+
+        if (!resultado.Error && resultado.Respuesta is not null)
+        {
+            listaUsuarios = resultado.Respuesta;
+        }
+        else
+        {
+            Console.WriteLine("No se pudo cargar usuarios");
+        }
+    }
+
+    // Helper: actualiza miembro usando PUT (usa tu DTO ChatMemberDTO)
+    private async Task UpdateMemberAsync(ChatMemberDTO dto)
+    {
+        // Si querés usar tu método Put<T,Tresp> (si está disponible en un servicio), reemplaza la llamada aquí.
+        try
+        {
+            var put = await http.PutAsJsonAsync("api/chatmember/actualizar", dto);
+            // manejar o revisar put.IsSuccessStatusCode si querés
+        }
+        catch
+        {
+            // fallback
+            await chatMemberServicio.Post<ChatMemberDTO, object>("api/chatmember/actualizar", dto);
+        }
+    }
+}
+
 
 <style>
     .page-container {

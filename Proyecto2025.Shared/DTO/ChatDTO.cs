@@ -9,7 +9,7 @@ namespace Proyecto2025.Shared.DTO
 {
     public class ChatDTO
     {
-        [Required(ErrorMessage = "El ID de chat es obligatorio")]
+        
         public long Id { get; set; } 
 
         [Required(ErrorMessage = "El nombre del chat es obligatorio")]

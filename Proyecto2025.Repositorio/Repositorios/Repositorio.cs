@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Proyecto2025.BD.Datos;
+using Proyecto2025.Shared.DTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +34,12 @@ namespace Proyecto2025.Repositorio.Repositorios
         {
             try
             {
+                var existechat = await context.Chats.AnyAsync(c => c.Id == entidad.Id); 
+                if(existechat)
+                  
+                {
+                    throw new Exception("ya existe el chat con ese nombre");
+                }
                 await context.Set<E>().AddAsync(entidad);
                 await context.SaveChangesAsync();
                 return (long)typeof(E).GetProperty("Id")!.GetValue(entidad)!;

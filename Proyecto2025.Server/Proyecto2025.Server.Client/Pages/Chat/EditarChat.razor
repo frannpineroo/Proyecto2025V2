@@ -1,11 +1,11 @@
-﻿@page "/chat/editar"
+﻿@page "/chat/editar/{id:long}"
 @inject IChatServicio http
 @inject NavigationManager navHttp
 @inject HttpClient Http
 <h3>Editar Chat</h3>
 
 
-@* <EditForm Model="chat" OnValidSubmit="Editar" FormName="EditarChatForm"> *@
+<EditForm Model="chat"OnValidSubmit="Editar">
 
 <DataAnnotationsValidator />
 <ValidationSummary />
@@ -57,6 +57,7 @@
         <ValidationMessage For="@(() => chat.UpdatedAt)" />
         </div>
     </div> *@
+</EditForm>
 <table>
     <tr>
         <th>chat</th>
@@ -103,6 +104,8 @@
 <p>@mensaje</p>
 
 @code {
+
+    [Parameter] public long id { get; set; }
     List<ListaChatDTO>? registro;
     string mensaje = "";
 
@@ -112,7 +115,7 @@
 
     private async Task Editar()
     {
-        var respuesta = await http.Put<ChatDTO, long>("api/chat", chat);
+        var respuesta = await http.Put<ChatDTO, long>("api/Chat", chat);
         if (!respuesta.Error)
         {
             navHttp.NavigateTo("/chat");

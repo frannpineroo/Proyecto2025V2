@@ -1,4 +1,4 @@
-﻿<div class="chat-window">
+﻿@* <div class="chat-window">
     <div class="chat-header">
         <div class="header-info">
             <div class="avatar large">LM</div>
@@ -66,4 +66,191 @@
 
 @code {
 
+} *@
+@* @using Proyecto2025.Server.Client.Pages.Chat 
+@inject IChatServicio chatServicio
+<div class="chat-window">
+    @if (selectedChatId == 0)
+    {
+        <div style="padding:20px;color:#777;">
+            Seleccioná un chat para ver los mensajes
+        </div>
+    }
+    else
+    {
+        <div class="chat-header">
+            <div class="header-info">
+                <div class="avatar large">@ChatIniciales</div>
+                <div>
+                    <h4>@ChatNombre</h4>
+                    <p class="status">En línea</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-messages">
+            @if (Mensajes == null || Mensajes.Count == 0)
+            {
+                <div style="color:#999;">No hay mensajes en este chat</div>
+            }
+            else
+            {
+                @foreach (var m in Mensajes)
+                {
+                    <VistaMensaje IsOwn="@(m.SenderId == UsuarioActualId)"
+                                  Sender="@m.SenderName"
+                                  Text="@m.Content"
+                                  Time="@m.SentAt.ToString("HH:mm")" />
+                }
+            }
+        </div>
+        <div class="chat-input">
+            <input class="form-control"
+                   placeholder="Escribí un mensaje..."
+                   @bind="NuevoTexto" />
+
+            <button class="btn btn-primary" @onclick="EnviarMensaje">
+                Enviar
+            </button>
+        </div>
+        <EscribirMensaje OnSend="EnviarMensaje" />
+    }
+</div>
+
+
+@code
+{
+    private string NuevoTexto = "";
+    private List<VerMensajesDTO> Mensajes = new();
+    private long UsuarioActualId = 1; // cambialo por el usuario logueado
+    private long selectedChatId = 0;
+    private List<ListaChatDTO> Chats = new();
+
+
+    private string ChatNombre = "";
+    private string ChatIniciales = "";
+
+    private async Task CargarMensajes(long chatId)
+    {
+        var r = await chatServicio
+            .GetEsAsync<List<VerMensajesDTO>>($"api/mensaje/{chatId}");
+
+        if (!r.Error && r.Respuesta != null)
+            Mensajes = r.Respuesta;
+        else
+            Mensajes = new();
+    }
+
+    private async Task EnterChat(long chatId)
+    {
+        selectedChatId = chatId;
+
+        var chat = Chats.FirstOrDefault(c => c.Id == chatId);
+        if (chat != null)
+        {
+            ChatNombre = chat.Name;
+            ChatIniciales = GetInitials(chat.Name);
+        }
+
+        await CargarMensajes(chatId);
+    }
+
+
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "?";
+
+        var parts = name.Split(' ');
+        if (parts.Length == 1)
+            return parts[0][0].ToString();
+
+        return string.Concat(parts[0][0], parts[1][0]);
+    }
+
+
+    private CrearMensajeDTO NuevoMensaje = new();
+
+    private async Task EnviarMensaje()
+    {
+        if (selectedChatId == 0 || string.IsNullOrWhiteSpace(NuevoTexto))
+            return;
+        var dto = new CrearMensajeDTO
+            {
+                ChatId = selectedChatId,
+                SenderId = UsuarioActualId,
+                Content = NuevoTexto,
+                SentAt = DateTime.UtcNow,
+            };
+        await chatServicio.Post<CrearMensajeDTO, object>("api/mensaje", NuevoMensaje);
+
+        NuevoTexto = "";
+
+        await CargarMensajes(selectedChatId);
+    }
+
+
+} *@
+
+@using Proyecto2025.Shared.DTO
+@inject IChatServicio chatServicio
+
+<div class="message-panel">
+    @if (SelectedChatId == 0)
+    {
+        <div class="empty-chat">
+            <p>Seleccioná un chat para ver los mensajes</p>
+        </div>
+    }
+    else
+    {
+        <div class="messages-container">
+            @foreach (var m in Mensajes)
+            {
+                <div class="message-bubble">
+                    <b>@m.SenderName</b>
+                    <p>@m.Content</p>
+                    <small>@m.SentAt.ToString("HH:mm")</small>
+                </div>
+            }
+        </div>
+
+        <div class="chat-input">
+            <input placeholder="Escribe un mensaje..."
+                   @bind="nuevo.Content" />
+
+            <button @onclick="EnviarMensaje">Enviar</button>
+        </div>
+    }
+</div>
+
+@code {
+    private long SelectedChatId;
+    private List<VerMensajesDTO> Mensajes = new();
+    private CrearMensajeDTO nuevo = new();
+
+    public async Task Load(long chatId)
+    {
+        SelectedChatId = chatId;
+
+        var r = await chatServicio
+            .GetEsAsync<List<VerMensajesDTO>>($"api/message/chat/{chatId}");
+
+        if (!r.Error && r.Respuesta != null)
+            Mensajes = r.Respuesta;
+        StateHasChanged();
+    }
+
+    private async Task EnviarMensaje()
+    {
+        if (SelectedChatId == 0) return;
+
+        nuevo.ChatId = SelectedChatId;
+        nuevo.SenderId = 1;
+
+        await chatServicio.Post<CrearMensajeDTO, object>("api/message", nuevo);
+
+        nuevo.Content = "";
+
+        await Load(SelectedChatId);
+    }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Proyecto2025.BD.Datos;
 using Proyecto2025.BD.Datos.Entity;
 using Proyecto2025.Repositorio.Repositorios;
 using Proyecto2025.Shared.DTO;
@@ -10,10 +11,18 @@ namespace Proyecto2025.Server.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUsuarioRepositorio usuarioRepositorio;
+        private readonly IRepositorio<Chat> chatRepositorio;
+        private readonly IChatMemberRepositorio<ChatMember> chatMemberRepositorio;
+        //private readonly AppDbContext context;
 
-        public UserController(IUsuarioRepositorio usuarioRepositorio)
+        public UserController(IUsuarioRepositorio usuarioRepositorio,
+                              IRepositorio<Chat> chatRepositorio,
+                              IChatMemberRepositorio<ChatMember> chatMemberRepositorio)
+                              
         {
             this.usuarioRepositorio = usuarioRepositorio;
+            this.chatRepositorio = chatRepositorio;
+            this.chatMemberRepositorio = chatMemberRepositorio;
         }
 
         [HttpGet]
@@ -100,6 +109,48 @@ namespace Proyecto2025.Server.Controllers
                 return BadRequest($"Error al crear usuario: {ex.Message}");
             }
         }
+
+        //AGREGADO POR EZEQUIEL. POR Q DE ACUERDO A USUARIO Q INICIA SECCION TIENE Q CARGAR DESDE EL PRINCIPIO EN CHATS
+        //PARA Q USUARIOS TENGA SUS CHATS Y GRUPOS PROPIOS
+        //[HttpPost("registrar")]
+        //public async Task<ActionResult> Registrar([FromBody] CrearUsuarioDTO dto)
+        //{
+        //    try
+        //    {
+        //        // Crear usuario usando el repo existente
+        //        var user = await usuarioRepositorio.CrearUsuarioAsync(dto);
+
+        //        // Crear chat automático
+        //        var chat = new Chat
+        //        {
+        //            Name = $"{user.FirstName} {user.LastName}",
+        //            IsGroup = false,
+        //            IsModerated = false,
+        //            CreatedAt = DateTime.UtcNow,
+        //            UpdatedAt = DateTime.UtcNow
+        //        };
+
+        //        await chatRepositorio.Insert(chat);
+
+        //        // Crear ChatMember
+        //        var member = new ChatMember
+        //        {
+        //            ChatId = chat.Id,
+        //            UserId = user.Id,
+        //            IsModerator = true,
+        //            CanWrite = true,
+        //            JoinedAt = DateTime.UtcNow
+        //        };
+
+        //        await chatMemberRepositorio.Insert(member);
+
+        //        return Ok();
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return BadRequest($"Error al registrar y crear chat: {e.Message}");
+        //    }
+        //}
 
         [HttpPut("{id:long}")]
         [ProducesResponseType(200)]

@@ -49,13 +49,13 @@ namespace Proyecto2025.Server.Controllers
         [HttpGet("{id}/chats")] //chats de usuario
         public async Task<ActionResult<List<ListaChatDTO>>> GetChats(long id)
         {
-            
+
             var chats = await context.ChatMembers
             .Where(cm => cm.UserId == id)
-            .Join(context.Chats, 
+            .Join(context.Chats,
                     cm => cm.ChatId,
                     ch => ch.Id,
-                    (cm,ch) => ch).ToListAsync();
+                    (cm, ch) => ch).ToListAsync();
 
             if (chats == null)
             {
@@ -107,29 +107,60 @@ namespace Proyecto2025.Server.Controllers
             return Ok(chats);
         }
 
+        //[HttpGet("{userId}")]
+        //public async Task<ActionResult<List<ChatDTO>>> GetUserChats(long userId)
+        //{
+        //    var chats = await context.ChatMembers
+        //        .Where(cm => cm.UserId == userId)
+        //        .Select(cm => cm.Chat)
+        //        .Select(ch => new ChatDTO
+        //        {
+        //            Id = ch.Id,
+        //            Name = ch.Name,
+        //            IsGroup = ch.IsGroup,
+        //            IsModerated = ch.IsModerated,
+        //            CreatedAt = ch.CreatedAt,
+        //            UpdatedAt = ch.UpdatedAt
+        //        })
+        //        .ToListAsync();
+
+        //    return Ok(chats);
+        //}
+
+
         [HttpPost]
-        public async Task<ActionResult<long>> Post([FromBody]ChatDTO DTO)
+        public async Task<ActionResult> Post([FromBody] ChatDTO dto)
         {
             try
             {
-                Chat chat = new()
+                var yaExiste = await context.Chats
+                    .AnyAsync(c => c.Name == dto.Name && c.IsGroup == dto.IsGroup);
+
+                if (yaExiste)
                 {
-                    Id = DTO.Id, // Soluciona CS9035: Id es requerido
-                    Name = DTO.Name,
-                    IsGroup = DTO.IsGroup,
-                    IsModerated = DTO.IsModerated,
-                    CreatedAt = DTO.CreatedAt,
-                    UpdatedAt = DTO.UpdatedAt,
-                    
+                    return BadRequest("Ya existe un chat con ese nombre.");
+                }
+
+                var chat = new Chat
+                {
+                    Name = dto.Name,
+                    IsGroup = dto.IsGroup,
+                    IsModerated = dto.IsModerated,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
-                var id = await repositorio.Insert(chat);
-                return Ok(chat.Id);
+
+                context.Chats.Add(chat);
+                await context.SaveChangesAsync();
+
+                return Ok(chat);
             }
             catch (Exception e)
             {
                 return BadRequest($"Error al crear el chat: {e.Message}");
             }
         }
+
 
         [HttpPut("{id}")]
         public async Task<ActionResult> Put(int id, Chat DTO)
@@ -157,7 +188,8 @@ namespace Proyecto2025.Server.Controllers
                 {
                     return NotFound("El chat no existe.");
                 }
-                return Ok($"Error al actualizar el chat: {id} actualizado con exito");
+                return Ok($"El chat {id} fue actualizado con éxito.");
+
             }
         }
 

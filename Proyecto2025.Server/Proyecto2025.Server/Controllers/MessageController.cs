@@ -36,7 +36,20 @@ namespace Proyecto2025.Server.Controllers
                 .ToListAsync();
             return Ok(messages);
         }
-      
+
+        [HttpGet("chat/{chatId:long}")]
+        public async Task<ActionResult<List<Message>>> GetByChat(long chatId)
+        {
+            var messages = await context.Messages
+                .Include(m => m.Sender)
+                .Where(m => m.ChatId == chatId)
+                .OrderBy(m => m.SentAt)
+                .ToListAsync();
+
+            return Ok(messages);
+        }
+
+
 
         [HttpGet("{Id:int}")]
         public async Task<ActionResult<Message>> GetByid(int Id)

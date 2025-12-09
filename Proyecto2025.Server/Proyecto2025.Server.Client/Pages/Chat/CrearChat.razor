@@ -1,4 +1,4 @@
-﻿@page "/chat/crear"
+﻿@* @page "/chat/crear"
 @inject IChatServicio http
 @inject NavigationManager navHttp
 @inject HttpClient Http
@@ -18,7 +18,7 @@
         </div>
     </div> *@
 
-    <div class="form-group">
+    @* <div class="form-group">
         <label>Name</label>
         <div>
             <InputText class="form-control" @bind-Value="chat.Name" />
@@ -40,7 +40,7 @@
             <InputCheckbox @bind-Value="chat.IsModerated" />
             <ValidationMessage For="@(() => chat.IsModerated)" />
         </div>
-    </div>
+    </div> *@
 
     @* <div class="form-group">
         <label>CreatedAt</label>
@@ -56,7 +56,7 @@
         <InputDate class="form-control" @bind-Value="chat.UpdatedAt" />
         <ValidationMessage For="@(() => chat.UpdatedAt)" />
         </div>
-    </div> *@
+    </div> 
 
     <button class="btn btn-primary" type="submit">Aceptar</button>
     <button class="btn btn-primary" @onclick="Cancelar">Cancelar</button>
@@ -76,7 +76,7 @@
         var respuesta = await http.Post<ChatDTO, long>("api/chat", chat);
         if (!respuesta.Error)
         {
-            navHttp.NavigateTo("/chat");
+            navHttp.NavigateTo("/Principal");
         }
         else
         {
@@ -87,6 +87,125 @@
 
     private async Task Cancelar()
     {
-         navHttp.NavigateTo("/chat");
+        navHttp.NavigateTo("/chat-sidebar");
+    }
+} *@
+
+@page "/chat/crear"
+@inject IChatServicio http
+@inject NavigationManager navHttp
+@inject HttpClient Http
+
+<h3>Crear Chat</h3>
+
+<EditForm Model="chat" OnValidSubmit="Grabar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+<div class="form-group">
+    <label>Seleccionar Usuario</label>
+    <select class="form-control" @bind="usuarioSeleccionadoId">
+        <option value="0">-- Seleccionar usuario --</option>
+
+        @foreach (var u in usuarios)
+        {
+            <option value="@u.Id">
+                @u.FirstName @u.LastName
+            </option>
+        }
+    </select>
+</div>
+
+<div class="form-group mt-2">
+    <label>Nombre del Chat</label>
+    <input class="form-control" @bind="chat.Name" readonly />
+</div>
+
+<div class="form-group mt-2">
+    <label>Tipo de Chat</label>
+    <div>
+        <InputCheckbox @bind-Value="chat.IsGroup" />
+        <span> Es chat grupal</span>
+    </div>
+</div>
+
+<div class="form-group mt-2">
+    <label>Moderado</label>
+    <div>
+        <InputCheckbox @bind-Value="chat.IsModerated" />
+    </div>
+</div>
+    
+<button class="btn btn-primary mt-3" @onclick="Grabar">Crear Chat</button>
+<button class="btn btn-secondary mt-3" @onclick="Cancelar">Cancelar</button>
+</EditForm>
+
+
+<p class="mt-3">@Mensaje</p>
+
+@code {
+
+    private ChatDTO chat = new ChatDTO();
+    private string Mensaje = "";
+
+    private long _usuarioSeleccionadoId;
+    private long usuarioSeleccionadoId
+    {
+        get => _usuarioSeleccionadoId;
+        set
+        {
+            _usuarioSeleccionadoId = value;
+
+            var user = usuarios.FirstOrDefault(x => x.Id == value);
+            if (user != null)
+            {
+                chat.Name = $"{user.FirstName} {user.LastName}";
+            }
+        }
+    }
+
+    private List<ListaUsuarioDTO> usuarios = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var result = await Http.GetFromJsonAsync<List<ListaUsuarioDTO>>("api/Usuario");
+            if (result != null)
+            {
+                usuarios = result;
+            }
+        }
+        catch
+        {
+            Mensaje = "Error al cargar usuarios";
+        }
+    }
+
+    private async Task Grabar()
+    {
+        try
+        {
+            var respuesta = await http.Post<ChatDTO, ListaChatDTO>("api/Chat", chat);
+
+            if (!respuesta.Error)
+            {
+                Mensaje = " Chat creado correctamente";
+                navHttp.NavigateTo("/chat-sidebar");
+            }
+            else
+            {
+                Mensaje = " Error al crear el chat: " + respuesta.OptenerError();
+            }
+        }
+        catch (Exception ex)
+        {
+            Mensaje = " Error inesperado: " + ex.Message;
+        }
+    }
+
+    private void Cancelar()
+    {
+        navHttp.NavigateTo("/chat-sidebar");
     }
 }
+

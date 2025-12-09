@@ -54,40 +54,28 @@ namespace Proyecto2025.Server.Controllers
         [HttpGet("por-chat/{chatId}")]
         public async Task<ActionResult<IEnumerable<ChatMember>>> GetChatMembers(long chatId)
         {
-            // Inicialización simplificada y con miembros requeridos
-            ChatMember member = new ChatMember
             {
-                Id = chatId,
-                ChatId = chatId,
-                UserId = 1, // Asigna un valor válido a UserId
-                IsModerator = false,
-                CanWrite = true,
-                JoinedAt = System.DateTime.UtcNow
-            };
-            //await context.ChatMembers.AddAsync(member);
-            //await context.SaveChangesAsync();
-            //var members = await context.ChatMembers
-            var members = await chatMemberRepositorio.SelectByChatId(chatId);
-                //.Include(cm => cm.User) // Incluye la entidad User relacionada
-                //.Where(cm => cm.ChatId == chatId)
-                //.ToListAsync();
-            if (members == null || members.Count == 0)
-            {
-                return NotFound("No members found for this chat.");
+                var members = await chatMemberRepositorio.SelectByChatId(chatId);
+
+                if (members == null || members.Count == 0)
+                {
+                    return NotFound("No members found for this chat.");
+                }
+                return Ok(members);
             }
-            return Ok(members);
+
         }
 
         [HttpPost]
         public async Task<ActionResult<ChatMember>> InsertMiembro([FromBody] ChatMemberDTO dto)
         {
-            // Verificar si el chat existe
-            var chatExiste = await context.Chats.AnyAsync(c => c.Id == dto.ChatId);
-            if (!chatExiste)
-            {
-                return BadRequest($"El chat con Id {dto.ChatId} no existe.");
-            }
+            var yaExiste = await context.ChatMembers
+                .AnyAsync(cm => cm.ChatId == dto.ChatId && cm.UserId == dto.UserId);
 
+            if (yaExiste)
+            {
+                return BadRequest("El usuario ya está en este chat.");
+            }
             var entidad = new ChatMember
             {
                 ChatId = dto.ChatId,
