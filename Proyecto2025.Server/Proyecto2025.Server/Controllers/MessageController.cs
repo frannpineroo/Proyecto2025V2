@@ -166,5 +166,43 @@ namespace Proyecto2025.Server.Controllers
             await context.SaveChangesAsync();
             return Ok(new { mensaje = "Mensaje ocultado" });
         }
+
+        [HttpGet("chat/{chatId:int}")]
+        public async Task<ActionResult<List<VerMensajesDTO>>> GetMessagesByChatId(int chatId)
+        {
+            // Obtener Id del usuario actual desde las claims
+            long currentRoleId = 0;
+            if (User?.Identity?.IsAuthenticated == true)
+            {
+                var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                              ?? User.FindFirst("id")?.Value;
+                long.TryParse(idClaim, out currentRoleId);
+            }
+
+            var messages = await context.Messages
+                .Where(m => m.ChatId == chatId &&
+                            (!m.IsArchived || currentRoleId == 1)) // admin ve archivados
+                .Include(m => m.Sender)
+                .Include(m => m.Chat)
+                .OrderBy(m => m.SentAt)
+                .Select(m => new VerMensajesDTO
+                {
+                    Id = (int)m.Id,
+                    ChatId = (int)m.ChatId,
+                    ChatName = m.Chat != null ? m.Chat.Name ?? "" : "",
+                    SenderId = (int)m.SenderId,
+                    SenderName = m.Sender != null ? m.Sender.FirstName + " " + m.Sender.LastName : "",
+                    Content = m.Content,
+                    MessageType = (int)m.MessageType,
+                    MediaFile = m.MediaFile != null ? Convert.ToBase64String(m.MediaFile) : null,
+                    SentAt = m.SentAt,
+                    IsRead = m.IsRead,
+                    IsArchived = m.IsArchived
+                })
+                .ToListAsync();
+
+            return Ok(messages);
+        }
+
     }
 }
