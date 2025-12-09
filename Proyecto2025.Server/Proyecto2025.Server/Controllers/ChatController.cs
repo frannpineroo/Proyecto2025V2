@@ -64,25 +64,26 @@ namespace Proyecto2025.Server.Controllers
         //    return Ok(chats);
         //}
 
+        //mio
 
-        [HttpGet]
-        public async Task<ActionResult<List<ChatDTO>>> GetChats()
-        {
-            var chats = await context.Chats
-                .Select(c => new ChatDTO
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    UltimoMensaje = context.Messages
-                        .Where(m => m.ChatId == c.Id)
-                        .OrderByDescending(m => m.SentAt)
-                        .Select(m => m.Content)
-                        .FirstOrDefault() ?? "Sin mensajes"
-                })
-                .ToListAsync();
+        //[HttpGet]
+        //public async Task<ActionResult<List<ChatDTO>>> GetChats()
+        //{
+        //    var chats = await context.Chats
+        //        .Select(c => new ChatDTO
+        //        {
+        //            Id = c.Id,
+        //            Name = c.Name,
+        //            UltimoMensaje = context.Messages
+        //                .Where(m => m.ChatId == c.Id)
+        //                .OrderByDescending(m => m.SentAt)
+        //                .Select(m => m.Content)
+        //                .FirstOrDefault() ?? "Sin mensajes"
+        //        })
+        //        .ToListAsync();
 
-            return Ok(chats);
-        }
+        //    return Ok(chats);
+        //}
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ChatDTO>> GetChat(int id)
@@ -112,6 +113,85 @@ namespace Proyecto2025.Server.Controllers
 
             return Ok(chat);
         }
+
+        [HttpGet]
+        public async Task<ActionResult<List<ChatDTO>>> GetTodos()
+        {
+            var chats = await context.Chats
+                .Select(c => new ChatDTO
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    IsGroup = c.IsGroup,
+                    IsModerated = c.IsModerated,
+                    CreatedAt = c.CreatedAt,
+                    UpdatedAt = c.UpdatedAt,
+                    UltimoMensaje = context.Messages
+                        .Where(m => m.ChatId == c.Id)
+                        .OrderByDescending(m => m.SentAt)
+                        .Select(m => m.Content)
+                        .FirstOrDefault() ?? "Sin mensajes"
+                })
+                .ToListAsync();
+
+            return Ok(chats);
+        }
+
+
+        [HttpPost("crear")]
+        public async Task<ActionResult<string>> CrearChat(CrearChatDTO dto)
+        {
+            if (dto.UserIds == null || dto.UserIds.Count == 0)
+                return BadRequest("Debe seleccionar al menos un usuario.");
+
+            var chat = new Chat
+            {
+                Name = dto.Name,
+                IsGroup = dto.IsGroup,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            context.Chats.Add(chat);
+            await context.SaveChangesAsync();
+
+            // Relación Chat - Usuarios
+            foreach (var userId in dto.UserIds)
+            {
+                context.ChatMembers.Add(new ChatMember
+                {
+                    ChatId = chat.Id,
+                    UserId = userId
+                });
+            }
+
+            await context.SaveChangesAsync();
+
+            return Ok("Chat creado correctamente");
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         #region
         [HttpGet("por-chat-lista/{id}")]//listachats
         public async Task<ActionResult<List<ListaChatDTO>>> GetChatslista(long id)

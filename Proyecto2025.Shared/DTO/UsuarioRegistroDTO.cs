@@ -4,6 +4,10 @@ namespace Proyecto2025.Shared.DTO
 {
     public class UsuarioRegistroDTO
     {
+        public long Id { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+
         [Required(ErrorMessage = "El nombre es obligatorio.")]
         public string Nombre { get; set; } = string.Empty;
 

@@ -5,7 +5,13 @@
 @inject IHttpServicio http
 @inject NavigationManager nav
 
-<h3 style="margin-bottom:15px;">📒 Mis Contactos y Chats</h3>
+<div class="header-chats">
+    <h3>📒 Mis Contactos y Chats</h3>
+
+    <button class="btn-new-chat" @onclick="CrearNuevoChat">
+        ➕ Crear chat
+    </button>
+</div>
 
 @if (chats == null)
 {
@@ -33,6 +39,17 @@ else
             </div>
         }
     </div>
+
+
+    <div class="chat-title">
+        @foreach (var c in chats)
+        {
+        @c.Name
+        <span class="chat-type">
+            @(c.IsGroup ? "(Grupo)" : "(Individual)")
+        </span>
+        }
+    </div>
 }
 
 @code {
@@ -50,9 +67,36 @@ else
     {
         nav.NavigateTo($"/mensajes/{id}");
     }
+
+    void CrearNuevoChat()
+    {
+        nav.NavigateTo("/chats/nuevo");
+    }
 }
 
 <style>
+    .header-chats {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        max-width: 450px;
+    }
+
+    .btn-new-chat {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        .btn-new-chat:hover {
+            background: #218838;
+        }
+
     .chat-list {
         display: flex;
         flex-direction: column;

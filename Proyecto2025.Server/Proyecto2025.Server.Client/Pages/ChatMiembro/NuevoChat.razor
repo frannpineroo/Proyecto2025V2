@@ -1,0 +1,133 @@
+﻿<h3>NuevoChat</h3>
+@page "/chats/nuevo"
+@using Proyecto2025.Servicio.ServiciosHttp
+@using Proyecto2025.Shared.DTO
+
+@inject IHttpServicio http
+@inject NavigationManager nav
+
+<h3>➕ Crear nuevo chat</h3>
+
+<div class="form-container">
+
+    <label>Nombre del chat:</label>
+    <input class="input" @bind="nuevoChat.Name" />
+
+    <label>Grupal</label>
+    <InputCheckbox @bind-Value="nuevoChat.IsGroup" />
+
+    <label>Seleccionar usuarios:</label>
+
+    @if (usuarios == null)
+    {
+        <p>Cargando usuarios...</p>
+    }
+    else
+    {
+        @foreach (var u in usuarios)
+        {
+            <div class="user-item">
+                @if (nuevoChat.IsGroup)
+                {
+                    <input type="checkbox"
+                           @onchange="(e) => SeleccionarUsuario(u.Id, e)"
+                           checked="@(seleccionados.Contains(u.Id))" />
+                }
+                else
+                {
+                    <input type="radio"
+                           name="sel"
+                           @onchange="(e) => SeleccionarUsuario(u.Id, e)"
+                           checked="@(seleccionados.Contains(u.Id))" />
+                }
+
+                <span>@u.FirstName @u.LastName</span>
+            </div>
+        }
+    }
+
+    <button class="btn-save" @onclick="GuardarChat">Guardar</button>
+</div>
+
+@code {
+    CrearChatDTO nuevoChat = new();
+    List<UsuarioRegistroDTO> usuarios = new();
+    List<long> seleccionados = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var resp = await http.Get<List<UsuarioRegistroDTO>>("api/usuario");
+
+        if (!resp.Error && resp.Respuesta is not null)
+            usuarios = resp.Respuesta;
+    }
+
+    void SeleccionarUsuario(long id, ChangeEventArgs e)
+    {
+        if (!nuevoChat.IsGroup)
+        {
+            // Radio: siempre un único seleccionado
+            seleccionados.Clear();
+            seleccionados.Add(id);
+            return;
+        }
+
+        // Checkbox (grupo): añadir o quitar según el valor del checkbox
+        bool isChecked = false;
+        if (e?.Value is bool b) isChecked = b;
+        else if (e?.Value is string s && bool.TryParse(s, out var parsed)) isChecked = parsed;
+
+        if (isChecked)
+        {
+            if (!seleccionados.Contains(id)) seleccionados.Add(id);
+        }
+        else
+        {
+            seleccionados.Remove(id);
+        }
+    }
+
+    async Task GuardarChat()
+    {
+        nuevoChat.UserIds = seleccionados;
+
+       // var resp = await http.Post<string, CrearChatDTO>("api/chat/crear", nuevoChat);
+        var resp = await http.Post<CrearChatDTO,string >("api/chat/crear", nuevoChat);
+
+        if (!resp.Error)
+            nav.NavigateTo("/chats");
+        else
+            Console.WriteLine("Error al crear chat: " + resp.ObtenerError());
+    }
+}
+
+<style>
+    .form-container {
+        max-width: 450px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .input {
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+    }
+
+    .user-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 4px;
+    }
+
+    .btn-save {
+        background: #007bff;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+</style>
